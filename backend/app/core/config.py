@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 # .env 기반 설정
@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     job_hard_timeout_sec: int = 75
 
-    class Config:
-        env_file = ".env"
+    # compose용 POSTGRES_* 같은 모르는 env는 무시
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()
