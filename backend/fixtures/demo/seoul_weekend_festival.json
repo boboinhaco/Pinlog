@@ -1,0 +1,161 @@
+{
+  "match_keywords": [
+    "NEXTO_SAMPLE_FESTIVAL"
+  ],
+  "extraction": {
+    "title": "9월 서울 주말 나들이 모음",
+    "category": "EVENT",
+    "organization": null,
+    "apply_period": {
+      "start": null,
+      "end": null,
+      "status": "unknown"
+    },
+    "event_period": {
+      "start": "2026-09-12",
+      "end": "2026-09-25",
+      "status": "exact"
+    },
+    "requirements": [],
+    "raw_evidence": [
+      "9.12~9.14 서울 재즈 페스티벌 @올림픽공원",
+      "9.18 성수 플리마켓",
+      "9.22~9.25 전시회 @예술의전당"
+    ],
+    "events": [
+      {
+        "title": "서울 재즈 페스티벌",
+        "category": "EVENT",
+        "event_period": {
+          "start": "2026-09-12",
+          "end": "2026-09-14",
+          "status": "exact"
+        },
+        "location": {
+          "name": "올림픽공원",
+          "address": "서울 송파구 올림픽로 424",
+          "lat": 37.5206,
+          "lng": 127.1214
+        }
+      },
+      {
+        "title": "플리마켓",
+        "category": "EVENT",
+        "event_period": {
+          "start": "2026-09-18",
+          "end": "2026-09-18",
+          "status": "exact"
+        },
+        "location": {
+          "name": "성수 팝업스토어",
+          "address": "서울 성동구 연무장길 일대",
+          "lat": 37.5433,
+          "lng": 127.0557
+        }
+      },
+      {
+        "title": "전시회",
+        "category": "EVENT",
+        "event_period": {
+          "start": "2026-09-22",
+          "end": "2026-09-25",
+          "status": "exact"
+        },
+        "location": {
+          "name": "예술의전당",
+          "address": "서울 서초구 남부순환로 2406",
+          "lat": 37.4786,
+          "lng": 127.0115
+        }
+      }
+    ],
+    "summary": "9월 서울에서 열리는 주말 나들이 일정 3개를 모아 소개하는 게시물이에요. 올림픽공원 재즈 페스티벌, 성수 플리마켓, 예술의전당 전시회 일정과 장소를 알려줘요.",
+    "target": {
+      "text": "누구나 (재즈 페스티벌은 유료 티켓)",
+      "age_min": null,
+      "age_max": null,
+      "region": null
+    },
+    "eligibility": [],
+    "key_points": [
+      "재즈 페스티벌은 얼리버드 티켓 매진, 일반 티켓 예매 중",
+      "플리마켓은 반려동물 동반 가능",
+      "전시회는 월요일 휴관"
+    ],
+    "location": null
+  },
+  "sources": [
+    {
+      "url": "https://www.seouljazz.example/sample/lineup",
+      "domain_type": "UNKNOWN",
+      "title": "서울 재즈 페스티벌 2026 공식 안내 (예시)",
+      "excerpt": "일정: 2026. 9. 12.(토) ~ 9. 14.(월). 장소: 올림픽공원 88잔디마당 외. 티켓: 1일권, 3일권 판매 중. 만 7세 이상 입장 가능(보호자 동반 시 미취학 아동 입장 가능).",
+      "rank": 0
+    }
+  ],
+  "verification": {
+    "primary_source": {
+      "url": "https://www.seouljazz.example/sample/lineup",
+      "domain_type": "OFFICIAL_ORGANIZER",
+      "title": "서울 재즈 페스티벌 2026 공식 안내 (예시)",
+      "rank": 0
+    },
+    "official_summary": "서울 재즈 페스티벌은 9월 12일부터 14일까지 올림픽공원 88잔디마당 등에서 열려요. 1일권·3일권이 있고 만 7세 이상 입장할 수 있어요.",
+    "official": {
+      "title": "서울 재즈 페스티벌 2026",
+      "target": {
+        "text": "만 7세 이상 (보호자 동반 시 미취학 아동 가능)"
+      },
+      "eligibility": [
+        "티켓 소지자"
+      ],
+      "event_period": {
+        "start": "2026-09-12",
+        "end": "2026-09-14",
+        "status": "exact"
+      },
+      "location": {
+        "name": "올림픽공원 88잔디마당",
+        "address": "서울 송파구 올림픽로 424"
+      }
+    },
+    "fields": [
+      {
+        "field": "title",
+        "sns_value": "서울 재즈 페스티벌",
+        "official_value": "서울 재즈 페스티벌 2026",
+        "status": "VERIFIED",
+        "evidence": "서울 재즈 페스티벌 2026 공식 안내"
+      },
+      {
+        "field": "event_period",
+        "sns_value": "9.12 ~ 9.14",
+        "official_value": "2026-09-12 ~ 2026-09-14",
+        "status": "VERIFIED",
+        "evidence": "일정: 2026. 9. 12.(토) ~ 9. 14.(월)"
+      },
+      {
+        "field": "location",
+        "sns_value": "올림픽공원",
+        "official_value": "올림픽공원 88잔디마당 외",
+        "status": "REFINED",
+        "evidence": "장소: 올림픽공원 88잔디마당 외"
+      },
+      {
+        "field": "target",
+        "sns_value": "누구나 (유료 티켓)",
+        "official_value": "만 7세 이상 (보호자 동반 시 미취학 아동 가능)",
+        "status": "REFINED",
+        "evidence": "만 7세 이상 입장 가능"
+      },
+      {
+        "field": "eligibility",
+        "sns_value": null,
+        "official_value": "티켓 소지자",
+        "status": "ADDED",
+        "evidence": "티켓: 1일권, 3일권 판매 중"
+      }
+    ],
+    "overall_grade": "HIGH"
+  }
+}

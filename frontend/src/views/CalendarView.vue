@@ -1,33 +1,38 @@
 <template>
   <section>
-    <h2>캘린더</h2>
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
-      <button class="ghost" @click="shift(-1)">‹</button><strong>{{ ym }}</strong><button class="ghost" @click="shift(1)">›</button>
+    <h1 class="page-title">˚❀⋆.ೃ࿔*:･ Calendar</h1>
+    <NotionCalendar v-model:month="month" :events="events" :max-lanes="4" />
+    <h2 class="section-title list-title">{{ month.getMonth() + 1 }}월 일정 <small>{{ events.length }}건</small></h2>
+    <div class="table">
+      <RouterLink v-for="e in events" :key="e.id" :to="`/items/${e.id}`" class="tr">
+        <span class="name serif">{{ e.title }}</span>
+        <span class="muted">{{ periodLabel(e.start, e.end) }}</span>
+        <span><i class="tag" :class="`tone-${CATEGORY[e.category]?.tone ?? 'gray'}`">{{ CATEGORY[e.category]?.label ?? '기타' }}</i></span>
+        <span class="muted">{{ e.place?.name ?? '' }}</span>
+      </RouterLink>
+      <p v-if="!events.length" class="empty">이 달에는 일정이 없어요.</p>
     </div>
-    <!-- TODO: 월 그리드 UI, 지금은 목록 -->
-    <div v-for="e in events" :key="e.event_id" class="card">
-      <span class="evidence">{{ e.start_at.slice(0, 10) }}</span> · {{ TYPE[e.event_type] ?? e.event_type }} ·
-      <RouterLink :to="`/items/${e.item_id}`">{{ e.title }}</RouterLink>
-      <span v-if="e.date_status === 'AMBIGUOUS'" class="evidence"> (날짜 확인 필요)</span>
-    </div>
-    <p v-if="!events.length" class="evidence">이 달에는 일정이 없어요.</p>
   </section>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { getCalendar } from '../api/nexto'
+import { CATEGORY } from '../utils/labels'
+import { periodLabel, fromCalendar, mergeById, monthRange } from '../utils/events'
+import NotionCalendar from '../components/NotionCalendar.vue'
 
-const TYPE = { APPLY_START: '신청 시작', APPLY_END: '신청 마감', EVENT_PERIOD: '행사', VISIT: '방문' }
-const cursor = ref(new Date()), events = ref([])
-const ym = computed(() => `${cursor.value.getFullYear()}-${String(cursor.value.getMonth() + 1).padStart(2, '0')}`)
-const shift = n => { cursor.value = new Date(cursor.value.getFullYear(), cursor.value.getMonth() + n, 1) }
-
-// 월 범위 조회
-async function load() {
-  const y = cursor.value.getFullYear(), m = cursor.value.getMonth()
-  const last = new Date(y, m + 1, 0).getDate()
-  events.value = await getCalendar(`${ym.value}-01`, `${ym.value}-${last}`)
-}
-watch(ym, load, { immediate: true })
+const month = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), events = ref([])
+watch(month, async m => { events.value = mergeById((await getCalendar(...monthRange(m))).map(fromCalendar)) }, { immediate: true })
 </script>
+
+<style scoped>
+.list-title { margin-top: 36px; font-size: 17px; }
+.table { border-top: 1px solid var(--line); }
+.tr { display: grid; grid-template-columns: 2fr 1fr .9fr 1fr; gap: 12px; align-items: center; padding: 9px 4px; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 14px; }
+.tr:hover { background: var(--soft); }
+.name { font-weight: 600; }
+.muted { color: var(--muted); }
+i.tag { font-style: normal; }
+@media (max-width: 640px) { .tr { grid-template-columns: 1fr auto; } }
+</style>

@@ -17,13 +17,28 @@ def _view(item: SavedItem):
             "last_verified_at": item.last_verified_at.isoformat() if item.last_verified_at else None, "created_at": item.created_at.isoformat()}
 
 
-# fields의 apply_period로 시작/마감 이벤트 생성
+# 검증 결과 표시용 (이전 형식: 필드 목록만 저장된 list)
+def ver_view(ver: VerificationResult | None) -> dict | None:
+    if not ver: return None
+    data = ver.fields_json if isinstance(ver.fields_json, dict) else {"fields": ver.fields_json}
+    return {**data, "overall_grade": ver.overall_grade, "verified_at": ver.verified_at.isoformat()}
+
+
+def _day(v: str) -> datetime:
+    return datetime.fromisoformat(v).replace(tzinfo=timezone.utc)
+
+
+# fields의 apply_period로 시작/마감 이벤트, event_period로 기간 이벤트 생성
 def _events(item: SavedItem) -> list[CalendarEvent]:
     period = item.fields_json.get("apply_period") or {}
     status = "AMBIGUOUS" if period.get("status") == "ambiguous" else "EXACT"
     evs = []
-    if period.get("start"): evs.append(CalendarEvent(item_id=item.item_id, event_type="APPLY_START", start_at=datetime.fromisoformat(period["start"]).replace(tzinfo=timezone.utc), date_status=status))
-    if period.get("end"): evs.append(CalendarEvent(item_id=item.item_id, event_type="APPLY_END", start_at=datetime.fromisoformat(period["end"]).replace(tzinfo=timezone.utc), date_status=status))
+    if period.get("start"): evs.append(CalendarEvent(item_id=item.item_id, event_type="APPLY_START", start_at=_day(period["start"]), date_status=status))
+    if period.get("end"): evs.append(CalendarEvent(item_id=item.item_id, event_type="APPLY_END", start_at=_day(period["end"]), date_status=status))
+    ep = item.fields_json.get("event_period") or {}
+    if ep.get("start"):
+        evs.append(CalendarEvent(item_id=item.item_id, event_type="EVENT_PERIOD", start_at=_day(ep["start"]), end_at=_day(ep.get("end") or ep["start"]),
+                                 date_status="AMBIGUOUS" if ep.get("status") == "ambiguous" else "EXACT"))
     return evs
 
 
@@ -50,24 +65,39 @@ async def list_items(status: str | None = None, category: str | None = None, use
     return ok([_view(i) for i in (await db.execute(q)).scalars().all()])
 
 
+# 본인 항목만 접근
+async def _own(db: AsyncSession, item_id: str, user_id: str) -> SavedItem:
+    item = await db.get(SavedItem, item_id)
+    if not item or str(item.user_id) != str(user_id): raise NextoError("NOT_FOUND", "항목을 찾을 수 없어요.", status=404)
+    return item
+
+
 # FR-08: 상세 + 출처 + 근거
 @router.get("/{item_id}")
-async def get_item(item_id: str, db: AsyncSession = Depends(get_db)):
-    item = await db.get(SavedItem, item_id)
-    if not item: raise NextoError("NOT_FOUND", "항목을 찾을 수 없어요.", status=404)
+async def get_item(item_id: str, user_id: str = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    item = await _own(db, item_id, user_id)
     src = await db.get(SourceDocument, item.primary_source_id) if item.primary_source_id else None
     ver = (await db.execute(select(VerificationResult).where(VerificationResult.extraction_id == item.extraction_id))).scalars().first() if item.extraction_id else None
     events = (await db.execute(select(CalendarEvent).where(CalendarEvent.item_id == item.item_id))).scalars().all()
     return ok({**_view(item), "source": {"url": src.url, "domain_type": src.domain_type, "title": src.title, "excerpt": src.excerpt} if src else None,
-               "verification_fields": ver.fields_json if ver else [], "events": [{"event_type": e.event_type, "start_at": e.start_at.isoformat(), "date_status": e.date_status} for e in events]})
+               "verification_fields": (ver_view(ver) or {}).get("fields", []), "official_summary": (ver_view(ver) or {}).get("official_summary"), "events": [{"event_type": e.event_type, "start_at": e.start_at.isoformat(), "end_at": e.end_at.isoformat() if e.end_at else None, "date_status": e.date_status} for e in events]})
 
 
+# 제목·카테고리·필드 수정 (카테고리 이동)
 @router.patch("/{item_id}")
-async def update_item(item_id: str, req: UpdateItemRequest, db: AsyncSession = Depends(get_db)):
-    item = await db.get(SavedItem, item_id)
-    if not item: raise NextoError("NOT_FOUND", "항목을 찾을 수 없어요.", status=404)
+async def update_item(item_id: str, req: UpdateItemRequest, user_id: str = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    item = await _own(db, item_id, user_id)
     if req.title: item.title = req.title
+    if req.category: item.category = req.category
     if req.fields: item.fields_json = {**item.fields_json, **req.fields}
     if req.status: item.status = req.status
     await db.commit()
     return ok(_view(item))
+
+
+# 삭제 (캘린더 이벤트는 FK cascade)
+@router.delete("/{item_id}")
+async def delete_item(item_id: str, user_id: str = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    item = await _own(db, item_id, user_id)
+    await db.delete(item); await db.commit()
+    return ok({"item_id": item_id, "deleted": True})

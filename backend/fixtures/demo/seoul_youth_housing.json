@@ -1,27 +1,40 @@
 {
-  "match_keywords": ["청년 주거비", "주거비 지원"],
+  "match_keywords": ["NEXTO_SAMPLE_HOUSING", "청년 주거비", "주거비 지원"],
   "extraction": {
     "title": "서울 청년 주거비 지원",
     "category": "POLICY_HOUSING",
+    "summary": "서울에 사는 19~34세 청년에게 월세를 월 최대 20만원까지 지원한다는 게시물이에요. 9월 한 달 동안 신청을 받는다고 안내하고 있어요.",
     "organization": "서울특별시",
-    "benefit_amount": {"text": "최대 20만원", "value": 200000, "unit": "KRW", "period": "MONTHLY"},
-    "target": {"age_min": 19, "age_max": 34, "region": "서울"},
+    "benefit_amount": {"text": "월 최대 20만원", "value": 200000, "unit": "KRW", "period": "MONTHLY"},
+    "target": {"text": "서울 거주 19~34세 청년", "age_min": 19, "age_max": 34, "region": "서울"},
+    "eligibility": ["서울 거주", "무주택"],
     "apply_period": {"start": "2026-09-01", "end": "2026-09-30", "status": "exact"},
     "requirements": ["신분증", "임대차계약서"],
-    "raw_evidence": ["19~34세 서울 거주 청년", "월 최대 20만원"]
+    "key_points": ["선착순이 아니라 소득 기준 선정", "최대 12개월 지원"],
+    "raw_evidence": ["19~34세 서울 거주 청년", "월 최대 20만원", "9월 1일~30일 신청"]
   },
   "sources": [
-    {"url": "https://youth.seoul.go.kr/sample/notice", "domain_type": "OFFICIAL_GOV", "title": "2026 서울 청년 주거비 지원사업 공고",
-     "excerpt": "지원대상: 만 19세 이상 39세 이하 서울시 거주 무주택 청년. 신청기간: 2026. 9. 1.(월) ~ 9. 30.(화). 지원내용: 월 최대 20만원(최대 12개월). 제출서류: 신분증, 임대차계약서, 소득증빙.", "rank": 0}
+    {"url": "https://youth.seoul.go.kr/sample/notice", "domain_type": "OFFICIAL_GOV", "title": "2026 서울 청년 주거비 지원사업 공고 (예시)",
+     "excerpt": "지원대상: 만 19세 이상 39세 이하 서울시 거주 무주택 청년. 소득기준: 기준 중위소득 150% 이하. 신청기간: 2026. 9. 1.(화) ~ 9. 30.(수). 지원내용: 월 최대 20만원(최대 12개월). 제출서류: 신분증, 임대차계약서, 소득증빙.", "rank": 0}
   ],
   "verification": {
-    "primary_source": {"url": "https://youth.seoul.go.kr/sample/notice", "domain_type": "OFFICIAL_GOV", "title": "2026 서울 청년 주거비 지원사업 공고", "rank": 0},
+    "primary_source": {"url": "https://youth.seoul.go.kr/sample/notice", "domain_type": "OFFICIAL_GOV", "title": "2026 서울 청년 주거비 지원사업 공고 (예시)", "rank": 0},
+    "official_summary": "서울시에 사는 만 19~39세 무주택 청년 중 기준 중위소득 150% 이하에게 월세를 월 최대 20만원, 최대 12개월 지원해요. 신청은 9월 1일부터 30일까지예요.",
+    "official": {
+      "title": "2026 서울 청년 주거비 지원사업",
+      "target": {"text": "서울 거주 만 19~39세 무주택 청년", "age_min": 19, "age_max": 39, "region": "서울"},
+      "eligibility": ["서울시 거주", "무주택", "기준 중위소득 150% 이하"],
+      "apply_period": {"start": "2026-09-01", "end": "2026-09-30", "status": "exact"},
+      "benefit_amount": {"text": "월 최대 20만원 (최대 12개월)"},
+      "requirements": ["신분증", "임대차계약서", "소득증빙"]
+    },
     "fields": [
       {"field": "title", "sns_value": "서울 청년 주거비 지원", "official_value": "2026 서울 청년 주거비 지원사업", "status": "REFINED", "evidence": "2026 서울 청년 주거비 지원사업 공고"},
-      {"field": "apply_period", "sns_value": "2026-09-01 ~ 2026-09-30", "official_value": "2026-09-01 ~ 2026-09-30", "status": "VERIFIED", "evidence": "신청기간: 2026. 9. 1.(월) ~ 9. 30.(화)"},
-      {"field": "target.age", "sns_value": "19~34세", "official_value": "19~39세", "status": "CONFLICT", "evidence": "지원대상: 만 19세 이상 39세 이하"},
-      {"field": "benefit_amount", "sns_value": "최대 20만원", "official_value": "월 최대 20만원(최대 12개월)", "status": "REFINED", "evidence": "지원내용: 월 최대 20만원(최대 12개월)"},
-      {"field": "requirements", "sns_value": ["신분증", "임대차계약서"], "official_value": ["신분증", "임대차계약서", "소득증빙"], "status": "ADDED", "evidence": "제출서류: 신분증, 임대차계약서, 소득증빙"}
+      {"field": "target", "sns_value": "서울 거주 19~34세 청년", "official_value": "서울 거주 만 19~39세 무주택 청년", "status": "CONFLICT", "evidence": "지원대상: 만 19세 이상 39세 이하 서울시 거주 무주택 청년"},
+      {"field": "eligibility", "sns_value": "서울 거주, 무주택", "official_value": "서울시 거주, 무주택, 기준 중위소득 150% 이하", "status": "ADDED", "evidence": "소득기준: 기준 중위소득 150% 이하"},
+      {"field": "apply_period", "sns_value": "2026-09-01 ~ 2026-09-30", "official_value": "2026-09-01 ~ 2026-09-30", "status": "VERIFIED", "evidence": "신청기간: 2026. 9. 1.(화) ~ 9. 30.(수)"},
+      {"field": "benefit_amount", "sns_value": "월 최대 20만원", "official_value": "월 최대 20만원 (최대 12개월)", "status": "REFINED", "evidence": "지원내용: 월 최대 20만원(최대 12개월)"},
+      {"field": "requirements", "sns_value": "신분증, 임대차계약서", "official_value": "신분증, 임대차계약서, 소득증빙", "status": "ADDED", "evidence": "제출서류: 신분증, 임대차계약서, 소득증빙"}
     ],
     "overall_grade": "REVIEW"
   }

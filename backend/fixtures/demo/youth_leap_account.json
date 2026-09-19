@@ -1,0 +1,41 @@
+{
+  "match_keywords": ["NEXTO_SAMPLE_FINANCE"],
+  "extraction": {
+    "title": "청년도약계좌",
+    "category": "FINANCE",
+    "summary": "5년 동안 매달 최대 70만원을 넣으면 정부 기여금과 비과세 혜택을 받을 수 있는 청년 적금 상품을 소개하는 게시물이에요. 10월 신청 기간을 놓치지 말라고 안내해요.",
+    "organization": "서민금융진흥원",
+    "benefit_amount": {"text": "정부기여금 + 이자소득 비과세", "value": null, "period": null},
+    "target": {"text": "만 19~34세 청년", "age_min": 19, "age_max": 34, "region": null},
+    "eligibility": ["연 소득 7,500만원 이하"],
+    "apply_period": {"start": "2026-10-01", "end": "2026-10-17", "status": "exact"},
+    "requirements": ["신분증"],
+    "key_points": ["월 70만원까지 자유 납입", "만기 5년", "은행 앱에서 가입 신청", "중도 해지하면 기여금 혜택 없음"],
+    "raw_evidence": ["매달 최대 70만원", "19~34세 청년", "10/1~10/17 신청"]
+  },
+  "sources": [
+    {"url": "https://ylaccount.kinfa.or.kr/sample/guide", "domain_type": "OFFICIAL_PUBLIC", "title": "청년도약계좌 가입 안내 (예시)",
+     "excerpt": "가입대상: 만 19세~34세 청년(병역 이행 기간 최대 6년 제외). 개인소득: 총급여 7,500만원 이하. 가구소득: 기준 중위소득 250% 이하. 납입한도: 월 70만원 자유적립. 만기: 5년. 혜택: 정부기여금 지급 및 이자소득 비과세. 2026년 10월 신청기간: 10. 1.(목) ~ 10. 16.(금). 제출서류: 신분증, 소득 확인은 가입 신청 후 자동 조회.", "rank": 0}
+  ],
+  "verification": {
+    "primary_source": {"url": "https://ylaccount.kinfa.or.kr/sample/guide", "domain_type": "OFFICIAL_PUBLIC", "title": "청년도약계좌 가입 안내 (예시)", "rank": 0},
+    "official_summary": "만 19~34세 청년이 5년 동안 매달 70만원까지 자유롭게 넣는 적금으로, 정부기여금과 이자소득 비과세 혜택이 있어요. 개인소득뿐 아니라 가구소득 기준도 있으니 확인이 필요해요.",
+    "official": {
+      "title": "청년도약계좌",
+      "target": {"text": "만 19~34세 청년 (병역기간 최대 6년 제외)", "age_min": 19, "age_max": 34, "region": null},
+      "eligibility": ["개인 총급여 7,500만원 이하", "가구소득 기준 중위소득 250% 이하"],
+      "apply_period": {"start": "2026-10-01", "end": "2026-10-16", "status": "exact"},
+      "benefit_amount": {"text": "정부기여금 지급 + 이자소득 비과세 (월 70만원 한도, 5년 만기)"},
+      "requirements": ["신분증"]
+    },
+    "fields": [
+      {"field": "title", "sns_value": "청년도약계좌", "official_value": "청년도약계좌", "status": "VERIFIED", "evidence": "청년도약계좌 가입 안내"},
+      {"field": "target", "sns_value": "만 19~34세 청년", "official_value": "만 19~34세 청년 (병역기간 최대 6년 제외)", "status": "REFINED", "evidence": "가입대상: 만 19세~34세 청년(병역 이행 기간 최대 6년 제외)"},
+      {"field": "eligibility", "sns_value": "연 소득 7,500만원 이하", "official_value": "개인 총급여 7,500만원 이하 + 가구소득 중위 250% 이하", "status": "ADDED", "evidence": "가구소득: 기준 중위소득 250% 이하"},
+      {"field": "apply_period", "sns_value": "2026-10-01 ~ 2026-10-17", "official_value": "2026-10-01 ~ 2026-10-16", "status": "CONFLICT", "evidence": "2026년 10월 신청기간: 10. 1.(목) ~ 10. 16.(금)"},
+      {"field": "benefit_amount", "sns_value": "정부기여금 + 이자소득 비과세", "official_value": "정부기여금 + 이자소득 비과세 (월 70만원 한도, 5년 만기)", "status": "REFINED", "evidence": "혜택: 정부기여금 지급 및 이자소득 비과세"},
+      {"field": "requirements", "sns_value": "신분증", "official_value": "신분증 (소득은 자동 조회)", "status": "VERIFIED", "evidence": "제출서류: 신분증, 소득 확인은 가입 신청 후 자동 조회"}
+    ],
+    "overall_grade": "REVIEW"
+  }
+}

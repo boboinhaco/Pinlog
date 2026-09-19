@@ -18,7 +18,7 @@ def reset_failures():
     _fail_count = 0
 
 
-# 데모 샘플 fixture 로드 (share text로 매칭, 없으면 None)
+# 데모 샘플 fixture 로드 (share text/링크로 매칭, 없으면 None)
 def load_fixture(text: str) -> dict | None:
     if not settings.demo_mode: return None
     for f in FIXTURE_DIR.glob("*.json"):

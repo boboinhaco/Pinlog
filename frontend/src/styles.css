@@ -1,21 +1,56 @@
-/* 모바일 390px 우선, 상태는 색+텍스트 병행 */
-:root { --primary: #3b4fbf; --ink: #1f2430; --line: #e3e6ef; --bg-soft: #f4f5fa; --high: #1d8a4a; --review: #d9822b; --unverified: #7a839e; --conflict-bg: #fdecec; }
+/* 노션 스타일: 흰 바탕, 세리프 제목, 옅은 회색 선, 파스텔 태그 */
+:root {
+  --bg: #ffffff; --ink: #37352f; --muted: #787774; --faint: #9b9a97; --line: #e9e9e7; --hover: #f1f1ef; --soft: #f7f6f3;
+  --mint: #edf3ec; --mint-ink: #448361; --sage: #dbe8dc; --blue: #2383e2;
+  --t-gray: #f1f1ef; --t-brown: #f4eeee; --t-orange: #fbecdd; --t-yellow: #fbf3db; --t-green: #edf3ec;
+  --t-blue: #e7f3f8; --t-purple: #f6f3f9; --t-pink: #fbeef3; --t-red: #fdebec;
+  --i-gray: #787774; --i-brown: #9f6b53; --i-orange: #d9730d; --i-yellow: #cb912f; --i-green: #448361;
+  --i-blue: #337ea9; --i-purple: #9065b0; --i-pink: #c14c8a; --i-red: #d44c47;
+  --serif: 'Noto Serif KR', Georgia, 'Times New Roman', serif;
+  --sans: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --radius: 6px;
+  --primary: var(--blue); --high: #448361; --review: #d9730d; --unverified: #787774; --conflict-bg: #fdebec;
+}
 * { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, -apple-system, sans-serif; color: var(--ink); }
-.nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
-.nav a { color: var(--ink); text-decoration: none; margin-left: 12px; }
-.nav .brand { font-weight: 700; color: var(--primary); margin: 0; }
-.container { max-width: 720px; margin: 0 auto; padding: 16px; }
-button { padding: 10px 16px; border: 0; border-radius: 8px; background: var(--primary); color: #fff; font: inherit; }
-button:disabled { opacity: .5; }
-button.ghost { background: var(--bg-soft); color: var(--ink); }
-input, textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
-.card { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-.badge.HIGH { background: #e3f5ea; color: var(--high); }
-.badge.REVIEW { background: #fff1e3; color: var(--review); }
-.badge.UNVERIFIED { background: #eef0f4; color: var(--unverified); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+h1, h2, h3, .serif { font-family: var(--serif); font-weight: 700; letter-spacing: -.01em; }
+.page { max-width: 1040px; margin: 0 auto; padding: 0 48px 80px; }
+.container { max-width: 1040px; margin: 0 auto; padding: 24px 48px 80px; }
+main.padded { max-width: 1040px; margin: 0 auto; padding: 8px 48px 80px; }
+@media (max-width: 760px) { main.padded { padding: 8px 16px 80px; } }
+button { font: inherit; cursor: pointer; border: 0; border-radius: var(--radius); padding: 7px 14px; background: var(--blue); color: #fff; font-weight: 500; }
+button:disabled { opacity: .45; cursor: default; }
+button.ghost, .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+button.ghost:hover, .btn-ghost:hover { background: var(--hover); }
+button.text { background: none; color: var(--muted); padding: 4px 6px; }
+button.text:hover { background: var(--hover); color: var(--ink); }
+input, textarea, select { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius); font: inherit; color: var(--ink); background: #fff; }
+input:focus, textarea:focus, select:focus { outline: 2px solid #c6ddf5; border-color: #9cc3ec; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; margin-bottom: 12px; }
+.section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; font-family: var(--serif); font-size: 19px; font-weight: 700; }
+.section-title small { font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--faint); }
+.panel-title { display: flex; justify-content: space-between; align-items: center; margin: 0 0 12px; font-family: var(--serif); font-size: 17px; font-weight: 700; }
+.panel-title small { font-family: var(--sans); font-size: 13px; font-weight: 400; color: var(--faint); }
+.page-title { font-family: var(--serif); font-size: 32px; font-weight: 700; margin: 28px 0 18px; }
+.tag { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 12.5px; line-height: 1.6; white-space: nowrap; }
+.tone-gray { background: var(--t-gray); color: #5a5955; } .tone-brown { background: var(--t-brown); color: #7a4f3c; }
+.tone-orange { background: var(--t-orange); color: #9a520e; } .tone-yellow { background: var(--t-yellow); color: #89621a; }
+.tone-green { background: var(--t-green); color: #356b4c; } .tone-blue { background: var(--t-blue); color: #28628a; }
+.tone-purple { background: var(--t-purple); color: #6e4a8c; } .tone-pink { background: var(--t-pink); color: #9c3a6e; }
+.tone-red { background: var(--t-red); color: #a8322d; }
+.chip { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 12.5px; background: var(--t-gray); color: #5a5955; }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.badge.HIGH { background: var(--t-green); color: #356b4c; }
+.badge.REVIEW { background: var(--t-orange); color: #9a520e; }
+.badge.UNVERIFIED { background: var(--t-gray); color: #5a5955; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 td, th { border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; vertical-align: top; }
-tr.CONFLICT td { background: var(--conflict-bg); }
-.evidence { font-size: 12px; color: #5b6480; }
+th { font-weight: 400; color: var(--muted); font-size: 13px; }
+.evidence { font-size: 12px; color: var(--muted); }
+.empty { color: var(--faint); font-size: 14px; text-align: center; padding: 28px 8px; }
+.callout { display: flex; gap: 12px; padding: 16px 18px; border-radius: 8px; background: var(--soft); }
+@media (max-width: 760px) {
+  .page, .container { padding-left: 16px; padding-right: 16px; }
+  .page-title { font-size: 26px; }
+}

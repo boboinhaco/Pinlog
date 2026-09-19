@@ -1,6 +1,6 @@
 <template>
   <section>
-    <h2>SNS 정보 수집</h2>
+    <h1 class="page-title">스크린샷·텍스트로 올리기</h1>
     <p class="evidence">스크린샷 1~5장과 캡션 텍스트를 함께 넣으면 정확도가 올라가요.</p>
     <input type="file" multiple accept="image/jpeg,image/png,image/webp" @change="onFiles" />
     <p v-if="files.length" class="evidence">{{ files.length }}장 선택됨</p>
@@ -16,11 +16,11 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { createShare } from '../api/nexto'
 
 const router = useRouter()
-const files = ref([]), text = ref(''), url = ref(''), loading = ref(false), error = ref(null)
+const files = ref([]), text = ref(''), url = ref(useRoute().query.url ?? ''), loading = ref(false), error = ref(null)
 const onFiles = e => (files.value = [...e.target.files].slice(0, 5))
 
 // 데모용 샘플 입력 (fixtures/demo와 키워드 일치)

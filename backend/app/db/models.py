@@ -18,6 +18,10 @@ class User(Base):
     user_id: Mapped[uuid.UUID] = uid()
     email: Mapped[str] = mapped_column(String(255), unique=True)
     name: Mapped[str | None] = mapped_column(String(100))
+    password_hash: Mapped[str | None] = mapped_column(Text)
+    photo: Mapped[str | None] = mapped_column(Text)        # 아치 사진 (data URL)
+    cover: Mapped[str | None] = mapped_column(Text)        # 헤더 커버 사진 (data URL)
+    notes: Mapped[list | None] = mapped_column(JSONB, default=list)  # 퀵노트 [{text, done}]
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

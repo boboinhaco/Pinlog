@@ -1,6 +1,6 @@
 <template>
   <section>
-    <h2>AI 분석 중</h2>
+    <h1 class="page-title">AI 분석 중</h1>
     <ol class="steps">
       <li v-for="s in STAGES" :key="s" :class="{ active: s === job.stage, done: isDone(s) }">{{ LABEL[s] }}</li>
     </ol>
@@ -8,7 +8,7 @@
     <div v-if="job.status === 'FAILED'" class="card">
       <p style="color:#d2323f">{{ job.error?.message }}</p>
       <button v-if="job.error?.retryable" @click="job.retry()">실패한 단계부터 다시 시도</button>
-      <RouterLink to="/" class="ghost" style="margin-left:8px">입력으로 돌아가기</RouterLink>
+      <RouterLink to="/home" style="margin-left:8px">홈으로 돌아가기</RouterLink>
     </div>
   </section>
 </template>

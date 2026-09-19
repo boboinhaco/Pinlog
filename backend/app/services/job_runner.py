@@ -7,7 +7,7 @@ from ..pipeline import understand, extract, normalize, search, verify
 from ..pipeline.search import url_hash
 from ..schemas import ExtractionPayload, SourceDoc, VerificationPayload
 from ..core.config import settings
-from . import sse, demo
+from . import sse, demo, llm
 
 STAGES = ["UNDERSTAND", "EXTRACT", "NORMALIZE", "SEARCH", "VERIFY"]
 MESSAGES = {"UNDERSTAND": "콘텐츠를 읽는 중", "EXTRACT": "핵심 정보를 추출하는 중", "NORMALIZE": "날짜와 금액을 정리하는 중",
@@ -33,14 +33,16 @@ async def run_job(job_id: str):
         done = job.stage_results or {}
         try:
             async with asyncio.timeout(settings.job_hard_timeout_sec):
-                fixture = demo.load_fixture(share.text or "")
+                fixture = demo.load_fixture(f"{share.text or ''} {share.original_url or ''}")
                 if "UNDERSTAND" not in done:
                     await _progress(db, job, "UNDERSTAND")
-                    done["UNDERSTAND"] = await understand.run(share.text or "", [a.storage_key for a in assets])
+                    done["UNDERSTAND"] = {"summary": share.text or "", "fixture": True} if fixture else \
+                        await understand.run(share.text or "", [a.storage_key for a in assets], share.original_url)
                     await _progress(db, job, "UNDERSTAND", done["UNDERSTAND"])
                 if "EXTRACT" not in done:
                     await _progress(db, job, "EXTRACT")
                     ex = ExtractionPayload(**fixture["extraction"]) if fixture else await extract.run(done["UNDERSTAND"])
+                    if not ex.image_url and share.original_url: ex.image_url = (done["UNDERSTAND"].get("link") or {}).get("image_url")
                     await _progress(db, job, "EXTRACT", ex.model_dump())
                     done["EXTRACT"] = ex.model_dump()
                 ex = ExtractionPayload(**done["EXTRACT"])
@@ -61,19 +63,23 @@ async def run_job(job_id: str):
                 ver = VerificationPayload(**done["VERIFY"])
 
                 # 최종 결과 영속화
-                extraction = Extraction(share_id=share.share_id, model_name=settings.llm_model or "fixture", payload_json=ex.model_dump())
+                extraction = Extraction(share_id=share.share_id, model_name="fixture" if fixture else settings.llm_model, payload_json={**ex.model_dump(), "demo": bool(fixture)})
                 db.add(extraction); await db.flush()
                 for s in sources:
                     db.add(SourceDocument(extraction_id=extraction.extraction_id, url=s.url, url_hash=url_hash(s.url), domain_type=s.domain_type,
                                           title=s.title, excerpt=s.excerpt, rank=s.rank))
-                db.add(VerificationResult(extraction_id=extraction.extraction_id, fields_json=[f.model_dump() for f in ver.fields], overall_grade=ver.overall_grade))
+                db.add(VerificationResult(extraction_id=extraction.extraction_id, overall_grade=ver.overall_grade,
+                                          fields_json={"fields": [f.model_dump() for f in ver.fields], "official_summary": ver.official_summary, "official": ver.official,
+                                                       "primary_source_url": ver.primary_source.url if ver.primary_source else None}))
                 job.status, job.stage, job.finished_at = "COMPLETED", "DONE", datetime.now(timezone.utc)
                 await db.commit()
                 await sse.publish(str(job.job_id), "completed", {"job_id": str(job.job_id), "share_id": str(share.share_id), "overall_grade": ver.overall_grade})
         except TimeoutError:
             await _fail(db, job, "TIMEOUT", "처리 시간이 초과됐어요. 다시 시도해 주세요.", True)
+        except llm.LLMError as e:
+            await _fail(db, job, "LLM_ERROR", str(e), True)
         except Exception as e:
-            await _fail(db, job, "SCHEMA_INVALID" if "validation" in str(e).lower() else "INTERNAL", str(e), True)
+            await _fail(db, job, "SCHEMA_INVALID" if "validation" in str(e).lower() else "INTERNAL", f"분석 중 오류가 났어요: {e}", True)
 
 
 async def _fail(db, job: AnalysisJob, code: str, message: str, retryable: bool):
