@@ -34,9 +34,9 @@ import { useJobStore } from '../stores/job'
 const props = defineProps({ category: String, notice: String, buttonLabel: { type: String, default: '일정 추출하기' }, query: Object, initialUrl: String, compact: Boolean })
 // 데모 모드에서 예시 데이터로 연결되는 샘플 링크
 const SAMPLES = [
-  { label: '인스타그램 예시', url: 'https://www.instagram.com/p/NEXTO_SAMPLE_FESTIVAL/', color: 'var(--grad)', icon: Instagram },
-  { label: 'YouTube 예시', url: 'https://www.youtube.com/watch?v=NEXTO_SAMPLE_FINANCE', color: '#ff0033', icon: Youtube },
-  { label: '블로그 예시', url: 'https://blog.naver.com/nexto/NEXTO_SAMPLE_HOUSING', color: '#03c75a', icon: FileText }
+  { label: '인스타그램 예시', url: 'https://www.instagram.com/p/PINLOG_SAMPLE_FESTIVAL/', color: 'var(--grad)', icon: Instagram },
+  { label: 'YouTube 예시', url: 'https://www.youtube.com/watch?v=PINLOG_SAMPLE_FINANCE', color: '#ff0033', icon: Youtube },
+  { label: '블로그 예시', url: 'https://blog.naver.com/pinlog/PINLOG_SAMPLE_HOUSING', color: '#03c75a', icon: FileText }
 ]
 const STAGES = ['UNDERSTAND', 'EXTRACT', 'NORMALIZE', 'SEARCH', 'VERIFY']
 const router = useRouter(), job = useJobStore()

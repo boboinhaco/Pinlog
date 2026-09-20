@@ -1,5 +1,5 @@
 {
-  "match_keywords": ["NEXTO_SAMPLE_FINANCE"],
+  "match_keywords": ["PINLOG_SAMPLE_FINANCE"],
   "extraction": {
     "title": "청년도약계좌",
     "category": "FINANCE",

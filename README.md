@@ -39,7 +39,7 @@ docker compose exec -T db psql -U nexto -d nexto < backend/db/migrations/002_use
 |---|---|
 | `LLM_API_KEY` / `LLM_MODEL` | Gemini API 키 · 모델 (예: `gemini-3.6-flash`) |
 | `WEB_SEARCH_API_KEY` | 공식 출처 검색용 Tavily 키 |
-| `DEMO_MODE` | `true`면 예시 링크(`NEXTO_SAMPLE_*`)를 데모 데이터로 응답 |
+| `DEMO_MODE` | `true`면 예시 링크(`PINLOG_SAMPLE_*`)를 데모 데이터로 응답 |
 | `JWT_SECRET` | 로그인 세션 토큰 서명 키 |
 
 ## 핵심 흐름

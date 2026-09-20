@@ -1,5 +1,5 @@
 {
-  "match_keywords": ["NEXTO_SAMPLE_HOUSING", "청년 주거비", "주거비 지원"],
+  "match_keywords": ["PINLOG_SAMPLE_HOUSING", "청년 주거비", "주거비 지원"],
   "extraction": {
     "title": "서울 청년 주거비 지원",
     "category": "POLICY_HOUSING",

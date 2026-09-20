@@ -4,10 +4,10 @@
     <header class="nav" :class="{ solid: scrolled }">
       <RouterLink to="/" class="brand"><PinLogo :size="30" /></RouterLink>
       <nav class="menu">
-        <a href="#problem" @click.prevent="go('problem')">이런 적 있나요</a>
-        <a href="#solution" @click.prevent="go('solution')">해결 방법</a>
-        <a href="#trust" @click.prevent="go('trust')">믿을 수 있나요</a>
-        <a href="#faq" @click.prevent="go('faq')">자주 묻는 질문</a>
+        <a href="#problem" @click.prevent="go('problem')">서비스 소개</a>
+        <a href="#solution" @click.prevent="go('solution')">이용 방법</a>
+        <a href="#trust" @click.prevent="go('trust')">검증 방식</a>
+        <a href="#faq" @click.prevent="go('faq')">FAQ</a>
       </nav>
       <div class="nav-cta">
         <RouterLink v-if="auth.loggedIn" to="/home" class="btn-primary sm">내 페이지로</RouterLink>

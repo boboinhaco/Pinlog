@@ -12,7 +12,6 @@
     <div class="p hide-sm"><SceneArt scene="coffee" /></div>
     <div class="p note-p hide-sm"><div class="note-card">Collect<br>&nbsp;Plan<br>&nbsp;&nbsp;Go !</div></div>
     <div class="p last"><SceneArt scene="sea" /><span class="overlay">Places<br>&nbsp;Events<br>&nbsp;&nbsp;Memories</span></div>
-    <div class="sticky">좋은 것들을<br>더 자주,<br>더 가까이 <span>☺</span></div>
   </div>
 </template>
 
@@ -33,12 +32,9 @@ import SceneArt from './SceneArt.vue'
 .note-p { background: #fdeaf1; display: grid; place-items: center; }
 .note-card { width: 76%; aspect-ratio: 4 / 5; padding: 14px 10px; background: #fffdfb; box-shadow: 0 6px 16px rgba(120, 30, 80, .15); transform: rotate(-8deg); font-family: var(--hand-en); font-size: 21px; line-height: 1.2; color: var(--hand-ink); }
 .overlay { position: absolute; right: 16px; top: 22px; font-family: var(--hand-en); font-size: 24px; line-height: 1.15; color: #fff; transform: rotate(-8deg); text-shadow: 0 1px 8px rgba(90, 20, 70, .4); }
-.sticky { position: absolute; left: 26px; bottom: -58px; z-index: 5; width: 180px; padding: 18px 20px; background: #fffdf8; box-shadow: 0 10px 26px rgba(120, 30, 80, .16); transform: rotate(-5deg); font-family: var(--hand-ko); font-size: 25px; line-height: 1.25; color: var(--ink); }
-.sticky span { font-family: var(--sans); font-size: 20px; margin-left: 6px; }
 @media (max-width: 900px) {
   .collage { grid-template-columns: 1.2fr 1fr 1.2fr 1fr 1.2fr; height: 150px; }
   .hide-sm { display: none; }
-  .sticky { display: none; }
 }
 @media (max-width: 520px) {
   .collage { grid-template-columns: 1fr 1.3fr 1fr; height: 120px; }
