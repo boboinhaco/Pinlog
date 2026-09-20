@@ -79,8 +79,6 @@ onUnmounted(() => job.stop?.())
 .steps { display: inline-flex; gap: 4px; }
 .steps i { width: 18px; height: 4px; border-radius: 2px; background: var(--line-strong); }
 .steps i.on { background: var(--cta); }
-.spin { animation: spin .8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 640px) {
   .bar { flex-wrap: wrap; padding: 10px 12px; }
   .bar input { flex-basis: calc(100% - 44px); }

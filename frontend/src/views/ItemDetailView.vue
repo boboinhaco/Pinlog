@@ -94,12 +94,7 @@
         <div v-if="f.products?.length" class="box">
           <div class="bh"><b><ShoppingBag :size="17" />저장한 상품 {{ f.products.length }}개</b></div>
           <p class="notice"><TriangleAlert :size="15" /><span>{{ PRODUCT_NOTICE }}</span></p>
-          <div v-for="p in f.products" :key="p.name" class="pd">
-            <span class="pd-top"><b>{{ p.matched_name || p.name }}</b><span class="tag" :class="`tone-${PRODUCT_CONF[p.confidence]?.tone ?? 'gray'}`">{{ PRODUCT_CONF[p.confidence]?.label ?? '확인 필요' }}</span></span>
-            <small class="pd-sub">{{ productSub(p) }}</small>
-            <small v-if="p.note" class="pd-note">{{ p.note }}</small>
-            <span class="pd-links"><a v-for="l in p.links" :key="l.url" :href="l.url" target="_blank" rel="noopener" :class="l.kind">{{ LINK_KIND[l.kind] ?? '참고' }} · {{ host(l.url) }} ↗</a></span>
-          </div>
+          <ProductList :products="f.products" />
         </div>
 
         <p v-if="!hasAny" class="empty">저장된 세부 정보가 없어요.</p>
@@ -133,12 +128,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getItem, patchItem, deleteItem } from '../api/nexto'
 import { longDate } from '../utils/events'
-import { sourceOf } from '../utils/source'
+import { sourceOf, host } from '../utils/source'
 import { ChevronLeft, Trash2, Check, Sparkles, CalendarDays, Users, Gift, MapPin, ShoppingBag, TriangleAlert } from 'lucide-vue-next'
-import { CATEGORIES, CATEGORY, GRADE, DOMAIN_LABEL, PRODUCT_CONF, LINK_KIND, PRODUCT_NOTICE, display, compareRows } from '../utils/labels'
+import { CATEGORIES, CATEGORY, GRADE, DOMAIN_LABEL, PRODUCT_NOTICE, display, compareRows } from '../utils/labels'
 import CategoryArt from '../components/CategoryArt.vue'
 import PlaceMap from '../components/PlaceMap.vue'
 import CompareRows from '../components/CompareRows.vue'
+import ProductList from '../components/ProductList.vue'
 
 const route = useRoute(), router = useRouter(), item = ref(null), imgOk = ref(true), saved = ref(false)
 const f = computed(() => item.value.fields ?? {})
@@ -149,8 +145,6 @@ const rows = computed(() => compareRows(f.value, item.value.verification_fields 
 const hasFacts = computed(() => period.value.start || period.value.end || display(f.value.target) || f.value.eligibility?.length || display(f.value.benefit_amount) || f.value.location?.name)
 const hasAny = computed(() => hasFacts.value || f.value.products?.length)
 const productOnly = computed(() => !!f.value.products?.length && !hasFacts.value)
-const host = u => { try { return new URL(u).hostname.replace(/^www\./, '') } catch { return u } }
-const productSub = p => [p.matched_name && p.matched_name !== p.name ? `게시물 표현: ${p.name}` : null, p.brand, p.kind, p.features, p.price_text && `게시물 가격 ${p.price_text}`].filter(Boolean).join(' · ')
 const savedWhen = computed(() => { const d = new Date(item.value.created_at); return `${d.getMonth() + 1}월 ${d.getDate()}일 저장` })
 
 // 기간 길이 · 마감(또는 시작)까지 남은 날
@@ -240,18 +234,6 @@ dd ul { margin: 0; padding-left: 18px; }
 /* 상품 */
 .notice { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 8px; padding: 10px 14px; border-radius: 10px; background: var(--t-orange); color: #8a4a12; font-size: 13px; line-height: 1.5; }
 .notice .lucide { flex: none; margin-top: 2px; }
-.pd { display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.pd:last-child { border-bottom: 0; padding-bottom: 2px; }
-.pd-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.pd-top b { font-size: 14.5px; }
-.pd-sub { font-size: 12.5px; color: var(--muted); }
-.pd-note { font-size: 12.5px; color: #8a4a12; }
-.pd-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-.pd-links a { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); background: #fff; font-size: 12px; text-decoration: none; color: var(--ink); }
-.pd-links a.official { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-.pd-links a.shop { color: var(--accent-deep); }
-.pd-links a.search { color: var(--muted); }
-.pd-links a:hover { background: var(--hover); }
 /* 공식 비교 */
 .cmp .section-title .tag { margin-left: 6px; }
 .sums { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }

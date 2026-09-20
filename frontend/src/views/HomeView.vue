@@ -141,18 +141,20 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.home { display: grid; }
+.home { display: block; }   /* grid면 배너의 비율·최소 높이가 가로폭으로 번져 좁은 화면에서 넘침 */
 /* 배너 아래 본문은 원래 페이지 폭으로 */
 .inner { width: 100%; max-width: 1320px; margin: 0 auto; padding: 26px 32px 64px; display: grid; gap: 22px; }
 .inner > *, .duo > * { min-width: 0; }
 .hero { position: relative; }
-.banner { position: relative; min-height: 440px; overflow: hidden; background: #f6e9ec; }
+/* 높이를 폭에 비례(약 2.66:1)시켜 화면이 넓어져도 같은 부분이 보이게. 아주 넓거나 좁을 때만 min/max로 제한 */
+.banner { position: relative; display: flex; align-items: center; width: 100%; aspect-ratio: 133 / 50; min-height: 380px; max-height: 640px; overflow: hidden; background: #f6e9ec; }
 /* 배경 사진(책상 셋업, 모니터·화병이 가운데 오게 자름): 왼쪽 글자 뒤는 흰색으로, 아래쪽은 페이지 배경으로 흐려짐 */
 .scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 46%; }
 .shade { position: absolute; inset: 0; background:
   linear-gradient(180deg, rgba(250, 250, 250, 0) 42%, rgba(250, 250, 250, .72) 80%, var(--bg) 100%),
   linear-gradient(90deg, rgba(255, 255, 255, .96) 0%, rgba(255, 255, 255, .88) 26%, rgba(255, 255, 255, .4) 46%, rgba(255, 255, 255, 0) 62%); }
-.hero-text { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 62px 32px 100px; }
+/* 글자 블록은 본문 폭(1320px) 안에서 왼쪽 정렬: 보통 화면에선 왼쪽 32px, 넓은 화면에선 가운데 쪽으로 들어옴. 세로는 배너 가운데(아래 여백은 링크창 자리) */
+.hero-text { position: relative; z-index: 1; width: 100%; max-width: 1320px; margin: 0 auto; padding: 36px 32px 96px; }
 .hero-text > * { max-width: 560px; }
 .tag-line { display: inline-block; margin: 0 0 2px; font-size: 27px; line-height: 1.1; }
 .hero h1 { margin: 0 0 12px; font-size: clamp(46px, 5.6vw, 66px); font-weight: 800; letter-spacing: -.05em; line-height: 1.05; }

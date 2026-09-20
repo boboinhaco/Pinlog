@@ -107,7 +107,6 @@ onUnmounted(() => { clearInterval(tipTimer); clearInterval(clockTimer); job.stop
 .orbit i:nth-child(1) { left: 50%; top: -6px; margin-left: -6px; }
 .orbit i:nth-child(2) { right: 8px; bottom: 22px; width: 9px; height: 9px; }
 .orbit i:nth-child(3) { left: 10px; bottom: 26px; width: 7px; height: 7px; }
-@keyframes spin { to { transform: rotate(360deg); } }
 .disc { position: relative; z-index: 2; display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; background: #fff; color: var(--accent); border: 3px solid #fff; box-shadow: 0 10px 28px rgba(214, 41, 118, .18); }
 .disc svg { position: relative; z-index: 1; }
 .done .disc { color: #1f9d55; background: var(--t-green); animation: cheer .6s ease; }

@@ -1,0 +1,16 @@
+# 비밀값·로컬 산출물은 이미지에 넣지 않음
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/uploads
+.git
+.idea
+.vscode
+docs
+**/.DS_Store

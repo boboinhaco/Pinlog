@@ -153,8 +153,6 @@ async function submit() {
 .url input:focus { box-shadow: none; }
 .acts { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 14px; }
 .acts button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 14px; font-size: 15px; }
-.spin { animation: spin .8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 .note { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
 @media (max-width: 1000px) { .cols { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .how { grid-template-columns: 1fr; } .acts { grid-template-columns: 1fr; } }

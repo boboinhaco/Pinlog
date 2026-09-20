@@ -6,7 +6,7 @@
     <div class="app" :class="{ side: !isMobile }">
       <AppSidebar v-if="!isMobile" />
       <div class="main">
-        <HeroCollage v-if="route.meta.hero" />
+        <PhotoBand v-if="route.meta.hero" />
         <div v-else-if="!isMobile && !route.meta.banner" class="topline"></div>
         <FloatUser v-if="!isMobile" :hero="!!(route.meta.hero || route.meta.banner)" />
         <main class="shell" :class="{ flush: route.meta.banner }"><RouterView :key="route.fullPath" /></main>
@@ -22,7 +22,7 @@ import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppFooter from './components/AppFooter.vue'
-import HeroCollage from './components/HeroCollage.vue'
+import PhotoBand from './components/PhotoBand.vue'
 import FloatUser from './components/FloatUser.vue'
 
 const route = useRoute()

@@ -29,9 +29,24 @@ docker compose up --build     # web:5173 / api:8000 / db:5432
 cd backend  && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/uvicorn app.main:app --reload
 cd frontend && npm i && npm run dev
 ```
-이미 DB를 쓰고 있다면 스키마 변경을 한 번 적용해 주세요.
+스키마는 서버가 시작할 때 자동으로 준비합니다(테이블이 없으면 `backend/db/init.sql`, 그다음 `backend/db/migrations/*.sql`).
+
+## 배포 (Render)
+루트의 `render.yaml`이 웹 서비스 하나(도커: 프론트 빌드 + API)와 Postgres를 정의합니다. 프론트와 API가 같은 주소에서 제공되어 CORS·프록시 설정이 필요 없습니다.
+
+1. GitHub에 푸시된 상태에서 [Render](https://render.com) 가입 → **New → Blueprint** → 이 저장소 선택.
+2. `render.yaml`을 읽어 서비스·DB를 만들고, `LLM_API_KEY`(Gemini)와 `WEB_SEARCH_API_KEY`(Tavily)를 물어보면 입력 → **Apply**.
+3. 첫 빌드는 5~10분. 끝나면 `https://pinlog-xxxx.onrender.com` 형태의 주소가 생기고, `/health`가 `{"ok":true}`를 주면 정상입니다.
+
+알아둘 점
+- 무료 웹 서비스는 15분 동안 접속이 없으면 잠들어 첫 접속이 30~60초 걸립니다.
+- 무료 Postgres는 생성 30일 뒤 만료됩니다. 계속 쓰려면 DB를 유료로 바꾸거나, [Neon](https://neon.tech) 같은 무료 Postgres의 접속 URL을 `DATABASE_URL`에 넣으면 됩니다(`?sslmode=require` 형식 그대로 사용 가능).
+- 올린 스크린샷은 컨테이너 디스크에 저장되어 재배포하면 사라집니다(분석 결과는 DB에 남습니다).
+
+배포 이미지를 로컬에서 미리 확인하려면
 ```bash
-docker compose exec -T db psql -U nexto -d nexto < backend/db/migrations/002_user_profile.sql
+docker build -t pinlog .
+docker run --rm -p 8000:8000 --env-file backend/.env -e DATABASE_URL=postgres://user:pass@host.docker.internal:5433/nexto pinlog
 ```
 
 ## 환경 변수

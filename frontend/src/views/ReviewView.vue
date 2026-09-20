@@ -82,15 +82,7 @@
         <div v-if="form.products.length" class="box">
           <div class="bh"><b><ShoppingBag :size="17" />사진·글에서 찾은 상품 {{ form.products.length }}개</b><small class="muted">{{ pickedProducts.length }}개 선택</small></div>
           <p class="notice soft"><TriangleAlert :size="15" /><span>{{ productNotice }} <RouterLink v-if="!result.image_count && result.original_url" :to="{ path: '/upload', query: { url: result.original_url } }">장별 캡처 올리기 →</RouterLink></span></p>
-          <label v-for="(p, i) in form.products" :key="i" class="pd" :class="{ off: !p.on }">
-            <input v-model="p.on" type="checkbox" />
-            <span class="pd-body">
-              <span class="pd-top"><b>{{ p.matched_name || p.name }}</b><span class="tag" :class="`tone-${PRODUCT_CONF[p.confidence]?.tone ?? 'gray'}`">{{ PRODUCT_CONF[p.confidence]?.label ?? '확인 필요' }}</span></span>
-              <small class="pd-sub">{{ productSub(p) }}</small>
-              <small v-if="p.note" class="pd-note">{{ p.note }}</small>
-              <span class="pd-links"><a v-for="l in p.links" :key="l.url" :href="l.url" target="_blank" rel="noopener" :class="l.kind" @click.stop>{{ LINK_KIND[l.kind] ?? '참고' }} · {{ host(l.url) }} ↗</a></span>
-            </span>
-          </label>
+          <ProductList :products="form.products" selectable @toggle="i => (form.products[i].on = !form.products[i].on)" />
         </div>
 
         <!-- 타임라인 -->
@@ -137,15 +129,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getShareResult, confirmShareItems } from '../api/nexto'
-import { CATEGORIES, CATEGORY, GRADE, DOMAIN_LABEL as DOMAIN, PRODUCT_CONF, LINK_KIND, PRODUCT_NOTICE, compareRows } from '../utils/labels'
+import { CATEGORIES, CATEGORY, GRADE, DOMAIN_LABEL as DOMAIN, PRODUCT_NOTICE, compareRows } from '../utils/labels'
 import { longDate, periodLabel, ymd } from '../utils/events'
 import { Sparkles, Info, CalendarDays, MapPin, MapPinned, ListChecks, GitCommitHorizontal, TriangleAlert, CalendarPlus, Check, LoaderCircle, ShoppingBag } from 'lucide-vue-next'
-import { sourceOf } from '../utils/source'
+import { sourceOf, host } from '../utils/source'
 import PageHero from '../components/PageHero.vue'
 import LinkBar from '../components/LinkBar.vue'
 import CompareRows from '../components/CompareRows.vue'
 import CategoryArt from '../components/CategoryArt.vue'
 import PlaceMap from '../components/PlaceMap.vue'
+import ProductList from '../components/ProductList.vue'
 
 // 필드 확인 상태 → 신뢰도 배지
 const CONF = { VERIFIED: { label: '높은 신뢰도', tone: 'green' }, REFINED: { label: '높은 신뢰도', tone: 'green' }, ADDED: { label: '공식 정보 추가', tone: 'purple' },
@@ -159,12 +152,12 @@ const official = computed(() => ver.value.official ?? {})
 const grade = computed(() => ver.value.overall_grade ?? 'UNVERIFIED')
 const primary = computed(() => result.value.sources.find(s => s.url === ver.value.primary_source_url) ?? null)
 const rows = computed(() => compareRows(ex.value, ver.value.fields))
+const conf = field => CONF[(ver.value.fields ?? []).find(f => f.field === field)?.status ?? 'UNVERIFIED']
 const multi = computed(() => form.value.events.length > 0)
 const picked = computed(() => form.value.events.filter(e => e.on))
 // 상품만 있는 글(날짜·일정 없음)은 일정 입력·공고 비교 대신 상품 목록 위주로
 const pickedProducts = computed(() => form.value.products.filter(p => p.on))
 const productOnly = computed(() => category.value === 'PRODUCT' && !multi.value && !form.value.start && !form.value.end)
-const productSub = p => [p.matched_name && p.matched_name !== p.name ? `게시물 표현: ${p.name}` : null, p.brand, p.kind, p.features, p.price_text && `게시물 가격 ${p.price_text}`].filter(Boolean).join(' · ')
 // 링크만 넣으면 대표 사진 1장 기준이라 장별 캡처를 권함, 캡처를 올렸어도 추정이라는 점은 같음
 const productNotice = computed(() => {
   const n = result.value.image_count ?? 0
@@ -173,8 +166,6 @@ const productNotice = computed(() => {
   return PRODUCT_NOTICE
 })
 const dateKind = computed(() => ex.value.category === 'EVENT' || (ex.value.event_period?.start && !ex.value.apply_period?.end) ? 'event_period' : 'apply_period')
-const host = u => { try { return new URL(u).hostname.replace(/^www\./, '') } catch { return u } }
-const conf = field => CONF[(ver.value.fields ?? []).find(f => f.field === field)?.status ?? 'UNVERIFIED']
 
 // 원본 게시물: 인스타 미리보기 문구는 "작성자 - 날짜: "캡션"" 형식
 const source = computed(() => sourceOf(result.value.original_url))
@@ -307,21 +298,6 @@ async function save(to) {
 .notice.soft { align-items: flex-start; background: var(--t-orange); color: #8a4a12; font-size: 13px; line-height: 1.5; }
 .notice.soft .lucide { flex: none; margin-top: 2px; }
 .notice.soft a { color: #8a4a12; font-weight: 700; white-space: nowrap; }
-.pd { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
-.pd:last-of-type { border-bottom: 0; }
-.pd.off { opacity: .45; }
-.pd input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); }
-.pd-body { display: grid; gap: 4px; min-width: 0; }
-.pd-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.pd-top b { font-size: 14.5px; }
-.pd-sub { font-size: 12.5px; color: var(--muted); }
-.pd-note { font-size: 12.5px; color: #8a4a12; }
-.pd-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-.pd-links a { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); background: #fff; font-size: 12px; text-decoration: none; color: var(--ink); }
-.pd-links a.official { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-.pd-links a.shop { color: var(--accent-deep); }
-.pd-links a.search { color: var(--muted); }
-.pd-links a:hover { background: var(--hover); }
 .acts.one, .sums.one { grid-template-columns: 1fr; }
 .title-input { padding: 4px 8px; margin-left: -8px; border: 0; border-radius: 8px; background: none; font-size: 22px; font-weight: 800; }
 .title-input:hover, .title-input:focus { background: var(--soft); outline: none; }
@@ -370,8 +346,6 @@ ol small { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: 
 .err { margin: 0 0 10px; color: var(--i-red); font-size: 14px; }
 .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
 .acts button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 14px; font-size: 15.5px; }
-.acts .spin { animation: spin .8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 .acts button:not(.ghost) { background: var(--cta); box-shadow: 0 6px 16px rgba(74, 114, 216, .25); }
 .acts .ghost { color: var(--accent-deep); border-color: var(--line-strong); }
 .cmp .section-title .tag { margin-left: 6px; }

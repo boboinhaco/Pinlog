@@ -1,0 +1,36 @@
+# Render 블루프린트: 웹 서비스 하나(도커: 프론트 빌드 + API) + Postgres
+# Render 대시보드 → New → Blueprint → 이 저장소 선택 → LLM_API_KEY, WEB_SEARCH_API_KEY 입력 → Apply
+services:
+  - type: web
+    name: pinlog
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pinlog-db
+          property: connectionString
+      - key: LLM_API_KEY          # Gemini (Google AI Studio)
+        sync: false
+      - key: WEB_SEARCH_API_KEY   # Tavily (공식 출처·상품 검색)
+        sync: false
+      - key: LLM_MODEL
+        value: gemini-3.6-flash
+      - key: LLM_FALLBACK_MODELS
+        value: gemini-3.5-flash-lite,gemini-flash-latest
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DEMO_MODE
+        value: "true"
+      - key: CORS_ORIGINS         # 프론트를 같은 서버에서 제공하므로 사실상 쓰이지 않음
+        value: "*"
+
+databases:
+  - name: pinlog-db
+    plan: free                    # 무료 DB는 생성 30일 뒤 만료 → 그 전에 유료 전환하거나 Neon 등 외부 DB URL로 교체
+    region: singapore
+    databaseName: pinlog
+    user: pinlog

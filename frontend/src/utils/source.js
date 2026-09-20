@@ -5,6 +5,9 @@ export const SOURCES = [
   { key: 'blog', label: '블로그', color: '#03c75a', test: h => /(blog\.naver\.com|tistory\.com|brunch\.co\.kr|velog\.io|medium\.com)$/.test(h) || h.startsWith('blog.') },
   { key: 'etc', label: '기타', color: '#6b7489', test: () => true }
 ]
+// 링크 표시용 호스트 이름 (www. 제거)
+export const host = u => { try { return new URL(u).hostname.replace(/^www\./, '') } catch { return u } }
+
 export function sourceOf(url) {
   if (!url) return { key: 'manual', label: '직접 추가', color: '#6b7489' }
   let host = ''

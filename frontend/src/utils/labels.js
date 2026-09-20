@@ -16,7 +16,6 @@ export const CATEGORIES = [
 const PIN = { green: '#3f9a6b', yellow: '#d4a22a', pink: '#d9578a', blue: '#4a72d8', orange: '#e07b2e', brown: '#9a6f55', purple: '#7c5cc4', red: '#d24a4a', indigo: '#4f5bd5', gray: '#6b7489' }
 export const pinColor = key => PIN[CATEGORIES.find(c => c.key === key)?.tone] ?? PIN.gray
 export const CATEGORY = Object.fromEntries(CATEGORIES.map(c => [c.key, c]))
-export const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]))
 export const GRADE = {
   HIGH: { label: '공식 근거 확인', tone: 'green' },
   REVIEW: { label: '확인 필요', tone: 'orange' },

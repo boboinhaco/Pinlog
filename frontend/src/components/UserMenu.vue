@@ -3,7 +3,7 @@
     <button class="who" :aria-expanded="open" @click.stop="emit('toggle')">
       <span class="ring"><span class="avatar">
         <img v-if="auth.user?.photo" :src="auth.user.photo" alt="" />
-        <SceneArt v-else scene="coast" />
+        <SceneArt v-else />
       </span></span>
       <span class="greet">{{ auth.user && !auth.isDemo ? `${auth.displayName}님, 좋은 하루예요!` : '좋은 하루예요!' }}</span>
       <ChevronDown :size="16" class="chev" />
@@ -11,7 +11,7 @@
     <div v-if="open" class="menu" @click.stop>
       <template v-if="auth.user && !auth.isDemo">
         <div class="me">
-          <span class="ring big"><span class="avatar"><img v-if="auth.user.photo" :src="auth.user.photo" alt="" /><SceneArt v-else scene="coast" /></span></span>
+          <span class="ring big"><span class="avatar"><img v-if="auth.user.photo" :src="auth.user.photo" alt="" /><SceneArt v-else /></span></span>
           <span><b>{{ auth.displayName }}</b><small>{{ auth.user.email }}</small></span>
         </div>
         <label class="item"><Camera :size="18" />프로필 사진 바꾸기<input type="file" accept="image/jpeg,image/png,image/webp" hidden @change="onPhoto" /></label>
