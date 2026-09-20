@@ -1,6 +1,6 @@
 import hashlib, hmac, secrets
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, Header
+from fastapi import Header
 from jose import jwt, JWTError
 from .config import settings
 from .errors import NextoError

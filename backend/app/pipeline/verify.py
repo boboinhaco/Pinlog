@@ -3,8 +3,7 @@ from ..schemas import ExtractionPayload, SourceDoc, VerificationPayload, FieldRe
 from ..services.grading import grade
 from ..services import llm
 
-CORE_FIELDS = ("title", "apply_period", "benefit_amount", "target")
-FIELDS = ("title", "target", "eligibility", "apply_period", "event_period", "benefit_amount", "location", "requirements")
+FIELDS =("title", "target", "eligibility", "apply_period", "event_period", "benefit_amount", "location", "requirements")
 OFFICIAL_TYPES = ("OFFICIAL_GOV", "OFFICIAL_PUBLIC", "OFFICIAL_FINANCE", "OFFICIAL_ORGANIZER")
 
 

@@ -9,8 +9,7 @@ from ..schemas import ExtractionPayload, SourceDoc, VerificationPayload
 from ..core.config import settings
 from . import sse, demo, llm
 
-STAGES = ["UNDERSTAND", "EXTRACT", "NORMALIZE", "SEARCH", "VERIFY"]
-MESSAGES = {"UNDERSTAND": "콘텐츠를 읽는 중", "EXTRACT": "핵심 정보를 추출하는 중", "NORMALIZE": "날짜와 금액을 정리하는 중",
+MESSAGES ={"UNDERSTAND": "콘텐츠를 읽는 중", "EXTRACT": "핵심 정보를 추출하는 중", "NORMALIZE": "날짜와 금액을 정리하는 중",
             "SEARCH": "공식 출처를 찾는 중", "VERIFY": "공식 정보와 비교하는 중"}
 
 

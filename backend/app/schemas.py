@@ -77,16 +77,6 @@ class VerificationPayload(BaseModel):
     official: dict = {}                         # 공식 출처의 구조화 값 (apply_period, target, eligibility ...)
 
 
-class CreateItemRequest(BaseModel):
-    share_id: str
-    extraction_id: str
-    title: str
-    category: Category = "OTHER"
-    fields: dict
-    user_overrides: list[str] = []
-    primary_source_id: Optional[str] = None
-
-
 # 검토 화면에서 사용자가 확인한 항목들 (정책/상품 1건 또는 행사 여러 건)
 class ConfirmItem(BaseModel):
     title: str

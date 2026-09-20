@@ -6,7 +6,7 @@ from ..db.session import get_db
 from ..db.models import SavedItem, CalendarEvent, SourceDocument, VerificationResult
 from ..core.security import current_user
 from ..core.errors import NextoError, ok
-from ..schemas import CreateItemRequest, UpdateItemRequest, ManualItemRequest
+from ..schemas import UpdateItemRequest, ManualItemRequest
 from ..pipeline.normalize import geocode
 
 router = APIRouter(prefix="/api/items", tags=["items"])
@@ -41,21 +41,6 @@ def _events(item: SavedItem) -> list[CalendarEvent]:
         evs.append(CalendarEvent(item_id=item.item_id, event_type="EVENT_PERIOD", start_at=_day(ep["start"]), end_at=_day(ep.get("end") or ep["start"]),
                                  date_status="AMBIGUOUS" if ep.get("status") == "ambiguous" else "EXACT"))
     return evs
-
-
-# FR-06/07: 사용자 확정 저장 + 이벤트 생성, 모호 날짜는 저장 거부
-@router.post("")
-async def create_item(req: CreateItemRequest, user_id: str = Depends(current_user), db: AsyncSession = Depends(get_db)):
-    if (req.fields.get("apply_period") or {}).get("status") == "ambiguous" and "apply_period" not in req.user_overrides:
-        raise NextoError("AMBIGUOUS_DATE", "날짜를 확인한 뒤 저장할 수 있어요.")
-    ver = (await db.execute(select(VerificationResult).where(VerificationResult.extraction_id == req.extraction_id))).scalars().first()
-    item = SavedItem(user_id=user_id, extraction_id=req.extraction_id, title=req.title, category=req.category, fields_json=req.fields,
-                     user_overrides=req.user_overrides, primary_source_id=req.primary_source_id,
-                     overall_grade=ver.overall_grade if ver else "UNVERIFIED", last_verified_at=ver.verified_at if ver else None)
-    db.add(item); await db.flush()
-    for ev in _events(item): db.add(ev)
-    await db.commit()
-    return ok(_view(item))
 
 
 # 링크 없이 직접 추가 (내 일정 > 새 일정 추가)

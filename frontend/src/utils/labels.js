@@ -30,7 +30,7 @@ export const STATUS = {
   UNVERIFIED: { label: '공식 미확인', tone: 'gray' }
 }
 // 비교표 행 순서
-export const FIELD_LABEL = {
+const FIELD_LABEL = {
   title: '무엇인지', target: '대상', eligibility: '자격요건', apply_period: '신청 기간 · 마감', event_period: '행사 기간',
   benefit_amount: '혜택', location: '장소', requirements: '준비 서류'
 }
