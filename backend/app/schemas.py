@@ -1,7 +1,7 @@
 from typing import Literal, Optional
 from pydantic import BaseModel
 
-Category = Literal["POLICY_HOUSING", "POLICY_JOB", "POLICY_LIVING", "SUBSCRIPTION", "FINANCE", "EVENT", "RECRUIT", "CONTEST", "OTHER"]
+Category = Literal["POLICY_HOUSING", "POLICY_JOB", "POLICY_LIVING", "SUBSCRIPTION", "FINANCE", "EVENT", "RECRUIT", "CONTEST", "PRODUCT", "OTHER"]
 FieldStatus = Literal["VERIFIED", "REFINED", "CONFLICT", "ADDED", "AMBIGUOUS", "UNVERIFIED"]
 Grade = Literal["HIGH", "REVIEW", "UNVERIFIED"]
 DomainType = Literal["OFFICIAL_GOV", "OFFICIAL_PUBLIC", "OFFICIAL_FINANCE", "OFFICIAL_ORGANIZER", "SECONDARY", "UNKNOWN"]
@@ -31,6 +31,28 @@ class EventCandidate(BaseModel):
     image_url: Optional[str] = None
 
 
+# 상품 링크: 공식 사이트 / 구매처 / 쇼핑 검색
+class ProductLink(BaseModel):
+    url: str
+    title: str = ""
+    kind: Literal["official", "shop", "search", "other"] = "other"
+
+
+# 사진·글에서 찾은 제품 후보 (인터넷 검색으로 상품명 확인)
+class ProductCandidate(BaseModel):
+    name: str                                   # 게시물·사진에 적힌 이름, 없으면 "브랜드 + 종류"
+    brand: Optional[str] = None
+    kind: Optional[str] = None                  # 제품 종류 (텀블러, 러닝화 ...)
+    features: Optional[str] = None              # 색·형태·특징 한 줄
+    visible_text: Optional[str] = None          # 사진에 보이는 브랜드·모델 글자
+    price_text: Optional[str] = None            # 게시물에 적힌 가격
+    source: Literal["caption", "image", "both"] = "caption"
+    confidence: Literal["high", "similar"] = "similar"   # high: 브랜드·모델이 글자로 확인됨
+    matched_name: Optional[str] = None          # 검색으로 확인한 정확한 상품명
+    note: Optional[str] = None                  # 확인 근거 또는 주의점
+    links: list[ProductLink] = []
+
+
 # FR-03 구조화 추출 결과
 class ExtractionPayload(BaseModel):
     title: str
@@ -48,6 +70,7 @@ class ExtractionPayload(BaseModel):
     notice: Optional[str] = None                # 링크만으로 알 수 없는 정보 안내 (예: 상세가 이미지 슬라이드에 있음)
     raw_evidence: list[str] = []
     events: list[EventCandidate] = []
+    products: list[ProductCandidate] = []       # 추천·소개된 물건
     image_url: Optional[str] = None
 
 

@@ -6,7 +6,7 @@ from ..db.session import get_db
 from ..db.models import AnalysisJob
 from ..core.errors import NextoError, ok
 from ..services import sse
-from ..services.job_runner import run_job
+from ..services.job_runner import run_job, MESSAGES
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -34,6 +34,9 @@ async def stream(job_id: str, db: AsyncSession = Depends(get_db)):
         if job.status in ("COMPLETED", "FAILED"):
             yield {"event": "completed" if job.status == "COMPLETED" else "failed", "data": json.dumps(_view(job), ensure_ascii=False)}; return
         q = sse.subscribe(job_id)
+        # 접속 전에 지나간 단계는 못 받으니 현재 단계를 먼저 보내줌
+        if job.stage and job.stage != "DONE":
+            yield {"event": "progress", "data": json.dumps({"job_id": job_id, "stage": job.stage, "message": MESSAGES.get(job.stage, "")}, ensure_ascii=False)}
         try:
             while True:
                 try:

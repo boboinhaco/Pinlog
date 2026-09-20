@@ -40,7 +40,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getItems, patchItem, deleteItem } from '../api/nexto'
 import { CATEGORIES, CATEGORY } from '../utils/labels'
-import { fromItem } from '../utils/events'
+import { fromItem, byPinned } from '../utils/events'
 import CategoryArt from '../components/CategoryArt.vue'
 import LinkBar from '../components/LinkBar.vue'
 import EventCard from '../components/EventCard.vue'
@@ -59,7 +59,8 @@ async function remove(i) {
 }
 onMounted(async () => {
   if (!cat.value) return router.replace('/items')
-  items.value = (await getItems({ category: cat.value.key })).map(fromItem); loaded.value = true
+  // 즐겨찾기 → 진행 중 → 종료 순
+  items.value = (await getItems({ category: cat.value.key })).map(fromItem).sort(byPinned); loaded.value = true
 })
 </script>
 

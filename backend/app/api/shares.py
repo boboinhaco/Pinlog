@@ -49,9 +49,11 @@ async def get_result(share_id: str, db: AsyncSession = Depends(get_db)):
     share = await db.get(ContentShare, share_id)
     job = (await db.execute(select(AnalysisJob).where(AnalysisJob.share_id == share_id).order_by(AnalysisJob.finished_at.desc().nulls_last()))).scalars().first()
     link = ((job.stage_results or {}).get("UNDERSTAND") or {}).get("link") or {} if job else {}
+    image_count = len((await db.execute(select(MediaAsset.asset_id).where(MediaAsset.share_id == share_id))).all())
     return ok({
         "share_id": share_id,
         "original_url": share.original_url if share else None,
+        "image_count": image_count,   # 올린 캡처 장수 (0이면 링크만으로 분석)
         # 원본 게시물 미리보기 (링크 미리보기 정보, 예시 데이터면 없음)
         "source_post": {k: link.get(k) for k in ("title", "description", "image_url", "is_sns")} if link and not link.get("error") else None,
         "created_at": share.created_at.isoformat() if share else None,

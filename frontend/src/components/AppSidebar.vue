@@ -21,7 +21,7 @@
     <div class="pop-wrap search-wrap">
       <label class="sbox">
         <Search :size="16" />
-        <input ref="searchEl" v-model="q" placeholder="저장한 일정·장소 검색" @focus="open = 'search'" @keydown.escape="open = ''" />
+        <input ref="searchEl" v-model="q" placeholder="저장한 일정·장소·상품 검색" @focus="open = 'search'" @keydown.escape="open = ''" />
         <kbd>⌘K</kbd>
       </label>
       <div v-if="open === 'search'" class="pop wide">

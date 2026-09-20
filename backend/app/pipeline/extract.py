@@ -7,7 +7,7 @@ from . import understand as understand_stage
 PROMPT = """너는 SNS 게시물에서 '다음 행동'에 필요한 정보를 뽑는 추출기야. 오늘은 {today}.
 아래 게시물(캡션/본문)과 첨부 이미지를 보고 JSON 하나만 출력해. 게시물에 없는 정보는 지어내지 말고 null 또는 빈 배열로 둬.
 
-category: POLICY_HOUSING(청년 주거·월세·임대) | POLICY_JOB(취업·일자리) | POLICY_LIVING(생활 지원) | SUBSCRIPTION(주택청약) | FINANCE(예적금·금융상품·계좌) | EVENT(축제·행사·전시·공연·팝업) | RECRUIT(모집) | CONTEST(공모전) | OTHER
+category: POLICY_HOUSING(청년 주거·월세·임대) | POLICY_JOB(취업·일자리) | POLICY_LIVING(생활 지원) | SUBSCRIPTION(주택청약) | FINANCE(예적금·금융상품·계좌) | EVENT(축제·행사·전시·공연·팝업) | RECRUIT(모집) | CONTEST(공모전) | PRODUCT(물건·제품 추천·소개·언박싱·착용샷) | OTHER
 
 출력 형식:
 {{
@@ -25,6 +25,7 @@ category: POLICY_HOUSING(청년 주거·월세·임대) | POLICY_JOB(취업·일
   "key_points": ["위 항목에 안 들어가는 유용한 정보 요약 (금리, 우대조건, 유의사항, 상품 목록 등) 최대 6개"],
   "raw_evidence": ["근거가 된 원문 구절 최대 5개"],
   "events": [{{"title": "...", "event_period": {{"start": "YYYY-MM-DD", "end": "YYYY-MM-DD", "status": "exact"}}, "location": {{"name": "...", "address": "...|null"}}}}],
+  "products": [{{"name": "제품 이름 (게시물·사진에 적힌 대로, 없으면 '브랜드 + 종류')", "brand": "브랜드|null", "kind": "제품 종류 (텀블러, 러닝화, 립밤 ...)", "features": "색·형태·특징 한 줄", "visible_text": "사진에 보이는 브랜드·모델 글자|null", "price_text": "게시물에 적힌 가격|null", "source": "caption|image|both", "confidence": "high|similar"}}],
   "notice": "대상·자격·기간 같은 핵심 정보를 이 내용만으로 알 수 없으면 그 이유를 사용자에게 한 문장으로 (예: 상세 내용이 뒤쪽 이미지 슬라이드에 있어 보이지 않아요) 아니면 null"
 }}
 
@@ -33,6 +34,8 @@ category: POLICY_HOUSING(청년 주거·월세·임대) | POLICY_JOB(취업·일
 - 마감만 있으면 apply_period.end만 채워.
 - 여러 상품·정책을 모아 소개하는 글이면 title은 모음 제목으로, 개별 이름·조건은 key_points에 적어.
 - events는 게시물 하나에 서로 다른 행사/일정이 여러 개일 때만 각각 넣어. 하나뿐이면 빈 배열로 두고 event_period를 채워.
+- products는 게시물이 물건·제품을 추천·소개하거나 사진의 주인공이 물건일 때 최대 6개. 사진 속 로고·패키지 글자·형태로 판단하고, 브랜드나 모델명이 글자로 보이면 confidence "high", 생김새로만 짐작했으면 "similar". 정책·행사 글이면 빈 배열.
+- 물건 소개가 게시물의 주된 내용이면 category는 PRODUCT.
 
 게시물 링크: {url}
 게시물 내용:
@@ -57,4 +60,8 @@ async def run(understanding: dict) -> ExtractionPayload:
     data = await llm.generate_json(PROMPT.format(today=date.today().isoformat(), url=understanding.get("url") or "-", content=content or "(텍스트 없음, 이미지 참고)"), images[:5])
     data["image_url"] = link.get("image_url")
     if not data.get("event_period") or not (data["event_period"] or {}).get("start"): data["event_period"] = None
+    # 제품 후보는 이름 있는 것만, confidence는 두 값으로 정리
+    data["products"] = [{**p, "confidence": p.get("confidence") if p.get("confidence") in ("high", "similar") else "similar",
+                         "source": p.get("source") if p.get("source") in ("caption", "image", "both") else "caption"}
+                        for p in (data.get("products") or []) if isinstance(p, dict) and p.get("name")][:6]
     return ExtractionPayload(**{k: v for k, v in data.items() if v is not None or k in ("event_period",)})

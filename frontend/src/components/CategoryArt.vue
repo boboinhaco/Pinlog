@@ -66,6 +66,13 @@
       <rect x="95" y="76" width="10" height="12" fill="#d5a532" /><rect x="82" y="88" width="36" height="12" rx="3" fill="#f28b8b" />
       <path :d="star(100, 52, 8)" fill="#fff" />
     </g>
+    <g v-else-if="kind === 'PRODUCT'">
+      <path d="M70 58 h60 l-5 44 h-50 z" fill="#c7cdf5" stroke="#6b78d6" stroke-width="3" stroke-linejoin="round" />
+      <path d="M84 58 v-8 a16 16 0 0 1 32 0 v8" fill="none" stroke="#6b78d6" stroke-width="3" stroke-linecap="round" />
+      <rect x="86" y="72" width="28" height="18" rx="4" fill="#fff" /><path d="M92 81 h16" stroke="#f29bb0" stroke-width="3" stroke-linecap="round" />
+      <g transform="translate(138 42) rotate(-20)"><path d="M0 0 h18 l8 8 l-8 8 h-18 z" fill="#f9d37a" stroke="#e0b44a" stroke-width="2" stroke-linejoin="round" /><circle cx="20" cy="8" r="2" fill="#fff" /></g>
+      <path :d="star(56, 46, 7)" fill="#f7a8bf" />
+    </g>
     <g v-else>
       <path :d="star(100, 60, 26)" fill="#f9d37a" stroke="#e0b44a" stroke-width="3" stroke-linejoin="round" />
       <circle cx="92" cy="58" r="2.6" fill="#5a4a50" /><circle cx="108" cy="58" r="2.6" fill="#5a4a50" />
@@ -80,12 +87,12 @@ import { computed } from 'vue'
 const props = defineProps({ kind: { type: String, default: 'OTHER' }, fill: Boolean })
 const BG = {
   POLICY_HOUSING: '#f3f8f1', FINANCE: '#fdf6ea', EVENT: '#fdf2f5', POLICY_JOB: '#f0f5fb', POLICY_LIVING: '#fdf3ea',
-  SUBSCRIPTION: '#f8f3ef', RECRUIT: '#f6f2fb', CONTEST: '#fdf1f0', OTHER: '#f6f6f3'
+  SUBSCRIPTION: '#f8f3ef', RECRUIT: '#f6f2fb', CONTEST: '#fdf1f0', PRODUCT: '#f1f2fc', OTHER: '#f6f6f3'
 }
 const ACC = {
   POLICY_HOUSING: ['#f9d37a', '#f7a8bf', '#a8d1a1'], FINANCE: ['#f7a8bf', '#a8d1a1', '#f3cf6b'], EVENT: ['#b8c9f2', '#f9d37a', '#a8d6c0'],
   POLICY_JOB: ['#f7a8bf', '#a8d1a1', '#b8c9f2'], POLICY_LIVING: ['#a8d1a1', '#f7a8bf', '#f9d37a'], SUBSCRIPTION: ['#a8d1a1', '#f7a8bf', '#d8c2ad'],
-  RECRUIT: ['#f9d37a', '#a8d6c0', '#cdb8ee'], CONTEST: ['#b8c9f2', '#a8d1a1', '#f28b8b'], OTHER: ['#cdb8ee', '#f7a8bf', '#a8d1a1']
+  RECRUIT: ['#f9d37a', '#a8d6c0', '#cdb8ee'], CONTEST: ['#b8c9f2', '#a8d1a1', '#f28b8b'], PRODUCT: ['#f7a8bf', '#f9d37a', '#c7cdf5'], OTHER: ['#cdb8ee', '#f7a8bf', '#a8d1a1']
 }
 const kind = computed(() => props.kind in BG ? props.kind : 'OTHER')
 

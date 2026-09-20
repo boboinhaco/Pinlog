@@ -15,7 +15,7 @@
     <!-- 추출된 일정 -->
     <section class="card block">
       <div class="head">
-        <h2 class="section-title"><CalendarDays :size="24" />추출된 일정 <small>{{ items.length }}개의 일정이 추출되었어요!</small></h2>
+        <h2 class="section-title"><Sparkles :size="24" />추출한 항목 <small>일정·장소·물품 {{ items.length }}개를 정리했어요!</small></h2>
         <RouterLink to="/items" class="more-link">전체보기<ChevronRight :size="16" /></RouterLink>
       </div>
       <!-- 카테고리 필터: 인스타 스토리 버블 -->
@@ -91,7 +91,7 @@ import { getPlaces, getItems, patchItem } from '../api/nexto'
 import { CATEGORIES, pinColor } from '../utils/labels'
 import { fromItem, mdw } from '../utils/events'
 import { activeSorted, daysUntil, ddayLabel } from '../utils/itemsQuery'
-import { CalendarDays, MapPin, Map as MapIcon, Heart, ChevronRight, LayoutGrid } from 'lucide-vue-next'
+import { CalendarDays, MapPin, Map as MapIcon, Heart, ChevronRight, LayoutGrid, Sparkles } from 'lucide-vue-next'
 import { BRAND, BRAND_KO, TAGLINE } from '../utils/brand'
 import LinkBar from '../components/LinkBar.vue'
 import EventCard from '../components/EventCard.vue'

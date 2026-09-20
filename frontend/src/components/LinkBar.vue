@@ -26,17 +26,18 @@
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Link2, Sparkles, ArrowRight, LoaderCircle, CircleAlert, CircleCheck, ImagePlus, Instagram, Youtube, FileText } from 'lucide-vue-next'
+import { Link2, Sparkles, ArrowRight, LoaderCircle, CircleAlert, CircleCheck, ImagePlus, Instagram, Youtube, FileText, ShoppingBag } from 'lucide-vue-next'
 import { createShare } from '../api/nexto'
 import { useJobStore } from '../stores/job'
 
 // category: 카테고리 페이지에서 넣으면 검토 화면의 저장 카테고리 기본값
-const props = defineProps({ category: String, notice: String, buttonLabel: { type: String, default: '일정 추출하기' }, query: Object, initialUrl: String, compact: Boolean })
+const props = defineProps({ category: String, notice: String, buttonLabel: { type: String, default: '링크 분석하기' }, query: Object, initialUrl: String, compact: Boolean })
 // 데모 모드에서 예시 데이터로 연결되는 샘플 링크
 const SAMPLES = [
   { label: '인스타그램 예시', url: 'https://www.instagram.com/p/PINLOG_SAMPLE_FESTIVAL/', color: 'var(--grad)', icon: Instagram },
   { label: 'YouTube 예시', url: 'https://www.youtube.com/watch?v=PINLOG_SAMPLE_FINANCE', color: '#ff0033', icon: Youtube },
-  { label: '블로그 예시', url: 'https://blog.naver.com/pinlog/PINLOG_SAMPLE_HOUSING', color: '#03c75a', icon: FileText }
+  { label: '블로그 예시', url: 'https://blog.naver.com/pinlog/PINLOG_SAMPLE_HOUSING', color: '#03c75a', icon: FileText },
+  { label: '추천템 예시', url: 'https://www.instagram.com/p/PINLOG_SAMPLE_PRODUCT/', color: '#4f5bd5', icon: ShoppingBag }
 ]
 const STAGES = ['UNDERSTAND', 'EXTRACT', 'NORMALIZE', 'SEARCH', 'VERIFY']
 const router = useRouter(), job = useJobStore()

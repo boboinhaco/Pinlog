@@ -10,7 +10,7 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 6px 20px rgba(0, 0, 0, .05);
   --shadow-lg: 0 12px 36px rgba(0, 0, 0, .1);
   --t-gray: #f0f0f0; --t-brown: #f4ede8; --t-orange: #fff0e3; --t-yellow: #fff6d9; --t-green: #e8f6ee;
-  --t-blue: #e8f1fe; --t-purple: #f3ecfb; --t-pink: #fdebf3; --t-red: #fdecec;
+  --t-blue: #e8f1fe; --t-purple: #f3ecfb; --t-pink: #fdebf3; --t-red: #fdecec; --t-indigo: #eceefc;
   --i-red: #ed4956; --mint-ink: #1f9d55;
   --serif: 'Playfair Display', 'Noto Serif KR', Georgia, serif;
   --hand-ko: 'Nanum Pen Script', cursive; --hand-en: 'Caveat', cursive;
@@ -49,7 +49,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: #c7c7c7
 .tone-orange { background: var(--t-orange); color: #b3560b; } .tone-yellow { background: var(--t-yellow); color: #8a6412; }
 .tone-green { background: var(--t-green); color: #1f7a48; } .tone-blue { background: var(--t-blue); color: #1b5fc4; }
 .tone-purple { background: var(--t-purple); color: #7a2fa8; } .tone-pink { background: var(--t-pink); color: #c01f6a; }
-.tone-red { background: var(--t-red); color: #c42b37; }
+.tone-red { background: var(--t-red); color: #c42b37; } .tone-indigo { background: var(--t-indigo); color: #3b47b8; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 td, th { border-bottom: 1px solid var(--line); padding: 8px 6px; text-align: left; vertical-align: top; }
 th { font-weight: 500; color: var(--muted); font-size: 13px; }

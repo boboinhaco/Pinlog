@@ -5,6 +5,11 @@ const md = s => { const [, m, d] = s.split('-'); return `${+m}.${+d}` }
 export const periodLabel = (start, end) => !start ? '날짜 미정' : (!end || end === start ? md(start) : `${md(start)} - ${md(end)}`)
 export const longDate = s => { if (!s) return '-'; const [y, m, d] = s.split('-'); return `${y}년 ${+m}월 ${+d}일` }
 
+// 마감(없으면 시작)일이 오늘보다 이전이면 끝난 항목
+export const isEnded = i => { const d = i.end || i.start; return !!d && d < ymd(new Date()) }
+// 즐겨찾기 먼저, 진행 중인 것 다음, 끝난 것은 뒤로 (같으면 시작일 순)
+export const byPinned = (a, b) => (b.liked - a.liked) || (isEnded(a) - isEnded(b)) || (a.start ?? '9').localeCompare(b.start ?? '9')
+
 // 저장 항목 → 화면용 일정 {id, title, start, end, place}
 export const fromItem = i => ({
   id: i.item_id, title: i.title, category: i.category,
@@ -12,7 +17,7 @@ export const fromItem = i => ({
   end: i.fields.event_period?.end ?? i.fields.apply_period?.end ?? null,
   place: i.fields.location ?? null, image: i.fields.image_url ?? null, grade: i.overall_grade,
   liked: !!i.fields.liked, created: i.created_at, summary: i.fields.summary ?? null, sourceUrl: i.fields.source_url ?? null,
-  keyPoints: i.fields.key_points ?? [], officialSummary: i.fields.official_summary ?? null,
+  keyPoints: i.fields.key_points ?? [], officialSummary: i.fields.official_summary ?? null, products: i.fields.products ?? [],
   periodKey: i.fields.event_period ? 'event_period' : i.fields.apply_period ? 'apply_period' : 'event_period'
 })
 

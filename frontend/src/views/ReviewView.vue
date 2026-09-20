@@ -1,6 +1,7 @@
 <template>
   <div v-if="result && form" class="review">
-    <PageHero align="left" back="/home" title="링크 분석 결과" sub="SNS 링크를 분석해 일정과 장소를 정리하고, 공식 공고와 비교했어요."
+    <PageHero align="left" back="/home" title="링크 분석 결과"
+              :sub="productOnly ? 'SNS 사진과 글에서 상품을 찾고, 인터넷 검색으로 상품명을 확인했어요.' : 'SNS 링크를 분석해 일정과 장소를 정리하고, 공식 공고와 비교했어요.'"
               doodle="좋아하는 콘텐츠가<br>새로운 일정이 되는 순간!" />
     <LinkBar :initial-url="result.original_url ?? ''" button-label="다른 링크 분석하기" compact class="lb" />
 
@@ -36,8 +37,8 @@
                   :class="[`tone-${c.tone}`, { on: category === c.key }]" @click="category = c.key">{{ c.label }}</button>
         </div>
 
-        <!-- 일정 -->
-        <div class="box">
+        <!-- 일정 (날짜 없는 상품 글은 생략) -->
+        <div v-if="!productOnly" class="box">
           <div class="bh"><b><CalendarDays :size="17" />{{ dateKind === 'event_period' ? '행사 일정' : '신청 기간' }}</b><span class="tag" :class="`tone-${conf(dateKind).tone}`">{{ conf(dateKind).label }}</span></div>
           <div v-if="!multi" class="dates">
             <label class="dt"><small>시작일</small><input v-model="form.start" type="date" @change="form.touched = true" /></label>
@@ -77,6 +78,21 @@
           </label>
         </div>
 
+        <!-- 사진·글에서 찾은 상품: 검색으로 확인한 이름 + 링크, 고른 것만 저장 -->
+        <div v-if="form.products.length" class="box">
+          <div class="bh"><b><ShoppingBag :size="17" />사진·글에서 찾은 상품 {{ form.products.length }}개</b><small class="muted">{{ pickedProducts.length }}개 선택</small></div>
+          <p class="notice soft"><TriangleAlert :size="15" /><span>{{ productNotice }} <RouterLink v-if="!result.image_count && result.original_url" :to="{ path: '/upload', query: { url: result.original_url } }">장별 캡처 올리기 →</RouterLink></span></p>
+          <label v-for="(p, i) in form.products" :key="i" class="pd" :class="{ off: !p.on }">
+            <input v-model="p.on" type="checkbox" />
+            <span class="pd-body">
+              <span class="pd-top"><b>{{ p.matched_name || p.name }}</b><span class="tag" :class="`tone-${PRODUCT_CONF[p.confidence]?.tone ?? 'gray'}`">{{ PRODUCT_CONF[p.confidence]?.label ?? '확인 필요' }}</span></span>
+              <small class="pd-sub">{{ productSub(p) }}</small>
+              <small v-if="p.note" class="pd-note">{{ p.note }}</small>
+              <span class="pd-links"><a v-for="l in p.links" :key="l.url" :href="l.url" target="_blank" rel="noopener" :class="l.kind" @click.stop>{{ LINK_KIND[l.kind] ?? '참고' }} · {{ host(l.url) }} ↗</a></span>
+            </span>
+          </label>
+        </div>
+
         <!-- 타임라인 -->
         <div v-if="timeline.length > 1" class="box">
           <div class="bh"><b><GitCommitHorizontal :size="17" />예상 일정 타임라인</b><small class="muted">저장한 뒤 내 일정에서 더 자세히 고칠 수 있어요.</small></div>
@@ -87,21 +103,21 @@
         <label v-if="needsDateCheck" class="warn check"><input v-model="dateChecked" type="checkbox" /> 날짜가 확실하지 않아요(연도·말일 추정). 날짜를 확인했어요.</label>
         <p v-if="error" class="err">{{ error.message }}</p>
 
-        <div class="acts">
-          <button class="ghost" :disabled="saving || !canSave" @click="save('/calendar')"><CalendarPlus :size="18" />일정표에 추가하기</button>
-          <button :disabled="saving || !canSave" @click="save(places.length ? '/map' : '/home')"><component :is="saving ? LoaderCircle : places.length ? MapPinned : Check" :size="18" :class="{ spin: saving }" />{{ saving ? '저장 중…' : places.length ? '지도에 저장하기' : '확인하고 저장하기' }}</button>
+        <div class="acts" :class="{ one: productOnly }">
+          <button v-if="!productOnly" class="ghost" :disabled="saving || !canSave" @click="save('/calendar')"><CalendarPlus :size="18" />일정표에 추가하기</button>
+          <button :disabled="saving || !canSave" @click="save(places.length ? '/map' : productOnly ? '/category/PRODUCT' : '/home')"><component :is="saving ? LoaderCircle : places.length ? MapPinned : Check" :size="18" :class="{ spin: saving }" />{{ saving ? '저장 중…' : places.length ? '지도에 저장하기' : '확인하고 저장하기' }}</button>
         </div>
       </section>
     </div>
 
-    <!-- 공식 공고와 비교 -->
+    <!-- 공식 공고와 비교 (상품 글은 공고가 없으니 링크 내용 요약만) -->
     <section class="card cmp">
       <div class="hd">
-        <h2 class="section-title">공식 공고와 비교 <span class="tag" :class="`tone-${GRADE[grade].tone}`">{{ GRADE[grade].label }}</span></h2>
+        <h2 class="section-title">{{ productOnly ? '이 링크가 알려주는 내용' : '공식 공고와 비교' }} <span v-if="!productOnly" class="tag" :class="`tone-${GRADE[grade].tone}`">{{ GRADE[grade].label }}</span></h2>
       </div>
-      <div class="sums">
-        <div><small>이 링크가 알려주는 내용</small><p>{{ ex.summary || '요약할 수 있는 내용이 없어요.' }}</p></div>
-        <div class="off">
+      <div class="sums" :class="{ one: productOnly }">
+        <div><small>{{ productOnly ? '요약' : '이 링크가 알려주는 내용' }}</small><p>{{ ex.summary || '요약할 수 있는 내용이 없어요.' }}</p></div>
+        <div v-if="!productOnly" class="off">
           <small>공식 공고에서는</small>
           <template v-if="primary">
             <p>{{ ver.official_summary }}</p>
@@ -110,7 +126,7 @@
           <p v-else class="muted">같은 내용을 다루는 공식 공고를 찾지 못했어요. 중요한 조건은 직접 한 번 더 확인해 주세요.</p>
         </div>
       </div>
-      <CompareRows v-if="rows.length" :rows="rows" />
+      <CompareRows v-if="!productOnly && rows.length" :rows="rows" />
       <div v-if="ex.key_points?.length" class="kp"><b>그 밖의 정보</b><ul><li v-for="p in ex.key_points" :key="p">{{ p }}</li></ul></div>
     </section>
   </div>
@@ -121,9 +137,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getShareResult, confirmShareItems } from '../api/nexto'
-import { CATEGORIES, CATEGORY, GRADE, compareRows } from '../utils/labels'
+import { CATEGORIES, CATEGORY, GRADE, DOMAIN_LABEL as DOMAIN, PRODUCT_CONF, LINK_KIND, PRODUCT_NOTICE, compareRows } from '../utils/labels'
 import { longDate, periodLabel, ymd } from '../utils/events'
-import { Sparkles, Info, CalendarDays, MapPin, MapPinned, ListChecks, GitCommitHorizontal, TriangleAlert, CalendarPlus, Check, LoaderCircle } from 'lucide-vue-next'
+import { Sparkles, Info, CalendarDays, MapPin, MapPinned, ListChecks, GitCommitHorizontal, TriangleAlert, CalendarPlus, Check, LoaderCircle, ShoppingBag } from 'lucide-vue-next'
 import { sourceOf } from '../utils/source'
 import PageHero from '../components/PageHero.vue'
 import LinkBar from '../components/LinkBar.vue'
@@ -131,7 +147,6 @@ import CompareRows from '../components/CompareRows.vue'
 import CategoryArt from '../components/CategoryArt.vue'
 import PlaceMap from '../components/PlaceMap.vue'
 
-const DOMAIN = { OFFICIAL_GOV: '정부·지자체 공식', OFFICIAL_PUBLIC: '공공기관 공식', OFFICIAL_FINANCE: '금융기관 공식', OFFICIAL_ORGANIZER: '주최측 공식', SECONDARY: '2차 자료', UNKNOWN: '출처' }
 // 필드 확인 상태 → 신뢰도 배지
 const CONF = { VERIFIED: { label: '높은 신뢰도', tone: 'green' }, REFINED: { label: '높은 신뢰도', tone: 'green' }, ADDED: { label: '공식 정보 추가', tone: 'purple' },
                CONFLICT: { label: '확인 필요', tone: 'red' }, AMBIGUOUS: { label: '보통 신뢰도', tone: 'orange' }, UNVERIFIED: { label: '공식 미확인', tone: 'gray' } }
@@ -146,6 +161,17 @@ const primary = computed(() => result.value.sources.find(s => s.url === ver.valu
 const rows = computed(() => compareRows(ex.value, ver.value.fields))
 const multi = computed(() => form.value.events.length > 0)
 const picked = computed(() => form.value.events.filter(e => e.on))
+// 상품만 있는 글(날짜·일정 없음)은 일정 입력·공고 비교 대신 상품 목록 위주로
+const pickedProducts = computed(() => form.value.products.filter(p => p.on))
+const productOnly = computed(() => category.value === 'PRODUCT' && !multi.value && !form.value.start && !form.value.end)
+const productSub = p => [p.matched_name && p.matched_name !== p.name ? `게시물 표현: ${p.name}` : null, p.brand, p.kind, p.features, p.price_text && `게시물 가격 ${p.price_text}`].filter(Boolean).join(' · ')
+// 링크만 넣으면 대표 사진 1장 기준이라 장별 캡처를 권함, 캡처를 올렸어도 추정이라는 점은 같음
+const productNotice = computed(() => {
+  const n = result.value.image_count ?? 0
+  if (n) return `올려 주신 캡처 ${n}장을 기준으로 찾았어요. 그래도 상품 정보는 사진과 검색 결과로 추정한 것이라 실제와 다를 수 있으니, 구매 전에 직접 한 번 더 확인해 주세요.`
+  if (result.value.original_url) return '링크만 넣으면 대표 사진(썸네일) 1장과 글만 읽을 수 있어요. 게시물이 여러 장이면 장별로 캡처한 사진을 올려 주시면 더 자세히 확인해요. 그래도 상품 정보는 추정이라 실제와 다를 수 있으니 구매 전에 직접 확인해 주세요.'
+  return PRODUCT_NOTICE
+})
 const dateKind = computed(() => ex.value.category === 'EVENT' || (ex.value.event_period?.start && !ex.value.apply_period?.end) ? 'event_period' : 'apply_period')
 const host = u => { try { return new URL(u).hostname.replace(/^www\./, '') } catch { return u } }
 const conf = field => CONF[(ver.value.fields ?? []).find(f => f.field === field)?.status ?? 'UNVERIFIED']
@@ -215,7 +241,8 @@ onMounted(async () => {
     title: official.value.title && ver.value.fields?.some(f => f.field === 'title' && ['VERIFIED', 'REFINED'].includes(f.status)) ? official.value.title : x.title,
     start: period.start ?? '', end: period.end ?? '', ambiguous: period.status === 'ambiguous', touched: false,
     events: (x.events ?? []).map(e => ({ on: true, title: e.title, start: e.event_period?.start ?? '', end: e.event_period?.end ?? e.event_period?.start ?? '',
-                                         location: e.location, ambiguous: e.event_period?.status === 'ambiguous', touched: false }))
+                                         location: e.location, ambiguous: e.event_period?.status === 'ambiguous', touched: false })),
+    products: (x.products ?? []).map(p => ({ ...p, on: true }))
   }
 })
 
@@ -223,12 +250,14 @@ onMounted(async () => {
 const pick = key => { const o = official.value[key], s = ex.value[key]; return (Array.isArray(o) ? o.length : o) ? o : s }
 function buildItems() {
   const x = ex.value
+  const products = pickedProducts.value.map(({ on, ...p }) => p)
   const common = { summary: x.summary, official_summary: ver.value.official_summary ?? null, key_points: x.key_points, image_url: postImage.value ?? x.image_url,
-                   organization: x.organization, ...(route.query.liked === '1' ? { liked: true } : {}) }
+                   organization: x.organization, ...(products.length ? { products } : {}), ...(route.query.liked === '1' ? { liked: true } : {}) }
   if (multi.value) {
-    return picked.value.map(e => ({
+    // 일정이 여러 개면 상품은 첫 일정에만 붙여 중복 저장을 피함
+    return picked.value.map((e, i) => ({
       title: e.title, category: category.value, user_overrides: e.touched || dateChecked.value ? ['event_period'] : [],
-      fields: { ...common, event_period: { start: e.start || null, end: e.end || e.start || null, status: 'exact' }, location: e.location }
+      fields: { ...common, ...(i ? { products: undefined } : {}), event_period: { start: e.start || null, end: e.end || e.start || null, status: 'exact' }, location: e.location }
     }))
   }
   const f = form.value
@@ -275,6 +304,25 @@ async function save(to) {
 .demo { margin: 10px 0 0; font-size: 12.5px; color: var(--faint); }
 .notice { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 10px 14px; border-radius: 10px; background: var(--t-yellow); color: #6f5316; font-size: 13.5px; }
 .notice a { color: #9a6a12; font-weight: 600; }
+.notice.soft { align-items: flex-start; background: var(--t-orange); color: #8a4a12; font-size: 13px; line-height: 1.5; }
+.notice.soft .lucide { flex: none; margin-top: 2px; }
+.notice.soft a { color: #8a4a12; font-weight: 700; white-space: nowrap; }
+.pd { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.pd:last-of-type { border-bottom: 0; }
+.pd.off { opacity: .45; }
+.pd input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); }
+.pd-body { display: grid; gap: 4px; min-width: 0; }
+.pd-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pd-top b { font-size: 14.5px; }
+.pd-sub { font-size: 12.5px; color: var(--muted); }
+.pd-note { font-size: 12.5px; color: #8a4a12; }
+.pd-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.pd-links a { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); background: #fff; font-size: 12px; text-decoration: none; color: var(--ink); }
+.pd-links a.official { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.pd-links a.shop { color: var(--accent-deep); }
+.pd-links a.search { color: var(--muted); }
+.pd-links a:hover { background: var(--hover); }
+.acts.one, .sums.one { grid-template-columns: 1fr; }
 .title-input { padding: 4px 8px; margin-left: -8px; border: 0; border-radius: 8px; background: none; font-size: 22px; font-weight: 800; }
 .title-input:hover, .title-input:focus { background: var(--soft); outline: none; }
 .cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 14px; }

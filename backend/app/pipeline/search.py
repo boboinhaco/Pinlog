@@ -39,10 +39,11 @@ def build_queries(ex: ExtractionPayload, year: int | None = None) -> list[str]:
 RANK = {"OFFICIAL_GOV": 0, "OFFICIAL_PUBLIC": 1, "OFFICIAL_FINANCE": 2, "OFFICIAL_ORGANIZER": 3, "UNKNOWN": 4, "SECONDARY": 5}
 
 
-async def _tavily(query: str) -> list[dict]:
+# Tavily 검색 (공식 출처는 본문까지, 상품 확인은 가볍게)
+async def tavily(query: str, *, max_results: int = 8, depth: str = "advanced", raw: bool = True) -> list[dict]:
     async with httpx.AsyncClient(timeout=20) as client:
         res = await client.post("https://api.tavily.com/search", headers={"Authorization": f"Bearer {settings.web_search_api_key}"},
-                                json={"query": query, "max_results": 8, "search_depth": "advanced", "include_raw_content": True, "country": "south korea"})
+                                json={"query": query, "max_results": max_results, "search_depth": depth, "include_raw_content": raw, "country": "south korea"})
     res.raise_for_status()
     return res.json().get("results", [])
 
@@ -53,7 +54,7 @@ async def run(ex: ExtractionPayload) -> list[SourceDoc]:
     seen, candidates = set(), []
     for q in build_queries(ex):
         try:
-            results = await _tavily(q)
+            results = await tavily(q)
         except Exception:
             continue
         for r in results:

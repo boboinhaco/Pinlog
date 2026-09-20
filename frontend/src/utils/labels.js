@@ -9,10 +9,11 @@ export const CATEGORIES = [
   { key: 'SUBSCRIPTION', label: '주택 청약', desc: '청약 공고 · 특별공급', tone: 'brown' },
   { key: 'RECRUIT', label: '모집', desc: '서포터즈 · 대외활동 · 체험단', tone: 'purple' },
   { key: 'CONTEST', label: '공모전', desc: '아이디어 · 디자인 · 영상', tone: 'red' },
+  { key: 'PRODUCT', label: '추천템', desc: '물건 · 제품 추천 · 구매 링크', tone: 'indigo' },
   { key: 'OTHER', label: '기타', desc: '분류하기 애매한 것들', tone: 'gray' }
 ]
 // 지도 핀·범례 색 (카테고리 tone 기준)
-const PIN = { green: '#3f9a6b', yellow: '#d4a22a', pink: '#d9578a', blue: '#4a72d8', orange: '#e07b2e', brown: '#9a6f55', purple: '#7c5cc4', red: '#d24a4a', gray: '#6b7489' }
+const PIN = { green: '#3f9a6b', yellow: '#d4a22a', pink: '#d9578a', blue: '#4a72d8', orange: '#e07b2e', brown: '#9a6f55', purple: '#7c5cc4', red: '#d24a4a', indigo: '#4f5bd5', gray: '#6b7489' }
 export const pinColor = key => PIN[CATEGORIES.find(c => c.key === key)?.tone] ?? PIN.gray
 export const CATEGORY = Object.fromEntries(CATEGORIES.map(c => [c.key, c]))
 export const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]))
@@ -29,6 +30,14 @@ export const STATUS = {
   AMBIGUOUS: { label: '확인 필요', tone: 'orange' },
   UNVERIFIED: { label: '공식 미확인', tone: 'gray' }
 }
+// 출처 도메인 종류 표시
+export const DOMAIN_LABEL = { OFFICIAL_GOV: '정부·지자체 공식', OFFICIAL_PUBLIC: '공공기관 공식', OFFICIAL_FINANCE: '금융기관 공식', OFFICIAL_ORGANIZER: '주최측 공식', SECONDARY: '2차 자료', UNKNOWN: '출처' }
+
+// 사진·글에서 찾은 상품: 확인 신뢰도 · 링크 종류 · 안내 문구
+export const PRODUCT_CONF = { high: { label: '확실함', tone: 'green' }, similar: { label: '비슷한 제품일 수 있음', tone: 'orange' } }
+export const LINK_KIND = { official: '공식', shop: '구매처', search: '네이버쇼핑 검색', other: '참고' }
+export const PRODUCT_NOTICE = '상품 정보는 사진과 검색 결과로 추정한 것이라 정확하지 않을 수 있어요. 구매 전에 직접 한 번 더 확인해 주세요.'
+
 // 비교표 행 순서
 const FIELD_LABEL = {
   title: '무엇인지', target: '대상', eligibility: '자격요건', apply_period: '신청 기간 · 마감', event_period: '행사 기간',

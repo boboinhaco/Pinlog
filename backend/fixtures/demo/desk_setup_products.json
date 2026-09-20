@@ -1,0 +1,136 @@
+{
+ "match_keywords": [
+  "PINLOG_SAMPLE_PRODUCT"
+ ],
+ "extraction": {
+  "title": "가을 데스크 셋업 추천템 4가지",
+  "category": "PRODUCT",
+  "organization": null,
+  "summary": "책상 위를 정리해 주는 소품 4가지를 사진과 함께 추천하는 게시물이에요. 텀블러, 데스크 매트, 무선 키보드, 탁상 조명을 소개하고 대략의 가격대를 알려줘요.",
+  "apply_period": {
+   "start": null,
+   "end": null,
+   "status": "unknown"
+  },
+  "event_period": null,
+  "location": null,
+  "target": null,
+  "benefit_amount": null,
+  "eligibility": [],
+  "requirements": [],
+  "key_points": [
+   "텀블러는 보온 6시간·보냉 12시간이라고 소개",
+   "데스크 매트는 오트밀·차콜 두 가지 색상",
+   "키보드는 블루투스 3대 동시 연결",
+   "조명은 3단 밝기 조절, USB-C 충전"
+  ],
+  "raw_evidence": [
+   "요즘 책상 위 필수템 4가지 정리!",
+   "텀블러 3만원대, 매트 2만원대, 키보드 5만원대, 조명 4만원대"
+  ],
+  "events": [],
+  "products": [
+   {
+    "name": "모카 스테인리스 텀블러 500ml",
+    "brand": "MOKA",
+    "kind": "텀블러",
+    "features": "무광 크림색, 손잡이 뚜껑",
+    "visible_text": "MOKA 500",
+    "price_text": "3만원대",
+    "source": "both",
+    "confidence": "high",
+    "matched_name": "MOKA 데일리 스테인리스 텀블러 500ml 크림",
+    "note": "사진 속 로고 'MOKA 500'과 공식몰 상품명이 일치해요.",
+    "links": [
+     {
+      "url": "https://moka.example/products/daily-tumbler-500",
+      "title": "MOKA 공식몰 · 데일리 텀블러 500ml",
+      "kind": "official"
+     },
+     {
+      "url": "https://search.shopping.naver.com/search/all?query=MOKA%20%EB%8D%B0%EC%9D%BC%EB%A6%AC%20%EC%8A%A4%ED%85%8C%EC%9D%B8%EB%A6%AC%EC%8A%A4%20%ED%85%80%EB%B8%94%EB%9F%AC%20500ml",
+      "title": "네이버쇼핑에서 'MOKA 데일리 스테인리스 텀블러 500ml' 검색",
+      "kind": "search"
+     }
+    ]
+   },
+   {
+    "name": "펠트 데스크 매트 (오트밀)",
+    "brand": null,
+    "kind": "데스크 매트",
+    "features": "베이지 펠트, 80×40cm 정도",
+    "visible_text": null,
+    "price_text": "2만원대",
+    "source": "both",
+    "confidence": "similar",
+    "matched_name": null,
+    "note": "브랜드 표시가 없어 비슷한 펠트 매트가 여러 종류 검색돼요. 사진과 같은 제품인지 확인이 필요해요.",
+    "links": [
+     {
+      "url": "https://search.shopping.naver.com/search/all?query=%ED%8E%A0%ED%8A%B8%20%EB%8D%B0%EC%8A%A4%ED%81%AC%20%EB%A7%A4%ED%8A%B8%20%EC%98%A4%ED%8A%B8%EB%B0%80",
+      "title": "네이버쇼핑에서 '펠트 데스크 매트 오트밀' 검색",
+      "kind": "search"
+     }
+    ]
+   },
+   {
+    "name": "키론 K3 무선 키보드",
+    "brand": "KEYRON",
+    "kind": "무선 키보드",
+    "features": "75% 배열, 화이트·그레이 키캡",
+    "visible_text": "KEYRON",
+    "price_text": "5만원대",
+    "source": "both",
+    "confidence": "high",
+    "matched_name": "KEYRON K3 75% 블루투스 기계식 키보드",
+    "note": "키보드 상단 로고와 키 배열이 공식 제품 사진과 같아요.",
+    "links": [
+     {
+      "url": "https://keyron.example/k3",
+      "title": "KEYRON 공식 · K3",
+      "kind": "official"
+     },
+     {
+      "url": "https://smartstore.naver.com/keyron-sample/products/k3",
+      "title": "스마트스토어 · KEYRON K3",
+      "kind": "shop"
+     },
+     {
+      "url": "https://search.shopping.naver.com/search/all?query=KEYRON%20K3%2075%25%20%EB%B8%94%EB%A3%A8%ED%88%AC%EC%8A%A4%20%EA%B8%B0%EA%B3%84%EC%8B%9D%20%ED%82%A4%EB%B3%B4%EB%93%9C",
+      "title": "네이버쇼핑에서 'KEYRON K3 75% 블루투스 기계식 키보드' 검색",
+      "kind": "search"
+     }
+    ]
+   },
+   {
+    "name": "아치형 탁상 조명",
+    "brand": null,
+    "kind": "탁상 조명",
+    "features": "화이트 아치형 스탠드, 따뜻한 빛",
+    "visible_text": null,
+    "price_text": "4만원대",
+    "source": "image",
+    "confidence": "similar",
+    "matched_name": null,
+    "note": "사진만으로는 브랜드를 알 수 없어요. 비슷한 아치형 조명이 여러 브랜드에서 나와요.",
+    "links": [
+     {
+      "url": "https://search.shopping.naver.com/search/all?query=%EC%95%84%EC%B9%98%ED%98%95%20%ED%83%81%EC%83%81%20%EC%A1%B0%EB%AA%85",
+      "title": "네이버쇼핑에서 '아치형 탁상 조명' 검색",
+      "kind": "search"
+     }
+    ]
+   }
+  ],
+  "image_url": null,
+  "notice": null
+ },
+ "sources": [],
+ "verification": {
+  "primary_source": null,
+  "fields": [],
+  "overall_grade": "UNVERIFIED",
+  "official_summary": null,
+  "official": {}
+ }
+}

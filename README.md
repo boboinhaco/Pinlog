@@ -1,4 +1,4 @@
-# Pinlog (핀로그) — SNS 링크를 확인된 다음 일정으로
+# Pinlog (핀로그) — SNS 링크를 확인된 일정·장소·물품으로
 
 SNS에서 발견한 정보를 AI가 공식 출처와 대조해 확인하고, 캘린더·지도·저장함으로 정리해주는 Personal Action Agent.
 원티드 AI 챔피언십 2026 · 명세서 v3.0 기준.
@@ -38,6 +38,7 @@ docker compose exec -T db psql -U nexto -d nexto < backend/db/migrations/002_use
 | 이름 | 설명 |
 |---|---|
 | `LLM_API_KEY` / `LLM_MODEL` | Gemini API 키 · 모델 (예: `gemini-3.6-flash`) |
+| `LLM_FALLBACK_MODELS` | 일일 한도·장애 시 순서대로 대신 쓸 모델 (기본 `gemini-3.5-flash-lite,gemini-flash-latest`). 무료 등급은 모델별 하루 요청 수가 작아서(예: 20회) 한도에 닿으면 자동으로 다음 모델로 넘어가요 |
 | `WEB_SEARCH_API_KEY` | 공식 출처 검색용 Tavily 키 |
 | `DEMO_MODE` | `true`면 예시 링크(`PINLOG_SAMPLE_*`)를 데모 데이터로 응답 |
 | `JWT_SECRET` | 로그인 세션 토큰 서명 키 |
@@ -50,6 +51,7 @@ docker compose exec -T db psql -U nexto -d nexto < backend/db/migrations/002_use
 - 링크는 OG 태그·본문을 읽고, 인스타그램은 캡션과 첫 이미지를 사용합니다.
 - 공식 출처는 웹 검색 후 정부·공공기관·금융기관 도메인을 우선 정렬해 상위 3건만 씁니다.
 - 게시물에 대조할 구체적 사실이 없으면 비슷한 출처와 연결하지 않고 `UNVERIFIED`로 둡니다.
+- 물건을 소개하는 게시물(`PRODUCT`)은 사진 속 로고·글자·형태로 제품 후보를 뽑고, 웹 검색으로 상품명을 확인해 공식·구매처·네이버쇼핑 검색 링크를 붙입니다. 브랜드·모델이 글자로 확인되면 "확실함", 생김새만 비슷하면 "비슷한 제품일 수 있음"으로 표시하고, 구매 전 직접 확인하라는 안내를 함께 보여줍니다.
 
 ## 신뢰등급
 숫자 confidence 없음. HIGH / REVIEW / UNVERIFIED 3단계 + 필드별 상태(VERIFIED/REFINED/CONFLICT/ADDED/AMBIGUOUS/UNVERIFIED).

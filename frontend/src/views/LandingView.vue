@@ -23,10 +23,10 @@
       <span class="blob b1" aria-hidden="true"></span><span class="blob b2" aria-hidden="true"></span>
       <div class="hero-in">
         <div class="hero-text">
-          <p v-reveal class="eyebrow"><Sparkles :size="15" />SNS 링크 → 확인된 일정</p>
-          <h1 v-reveal="60">저장만 해둔 그 링크,<br><span class="grad-text">다음 일정</span>으로 만들어드려요.</h1>
-          <p v-reveal="140" class="lead">{{ BRAND_KO }}는 인스타그램·블로그·기사 링크에서 일정과 장소를 뽑아내고,
-            <b>공식 공고와 한 줄씩 대조한 뒤</b> 내가 확인한 것만 캘린더와 지도에 정리해요.</p>
+          <p v-reveal class="eyebrow"><Sparkles :size="15" />SNS 링크 → 확인된 일정 · 장소 · 물품</p>
+          <h1 v-reveal="60">저장만 해둔 그 링크,<br><span class="grad-text">일정·장소·추천템</span>으로 만들어드려요.</h1>
+          <p v-reveal="140" class="lead">{{ BRAND_KO }}는 인스타그램·블로그·기사 링크에서 일정과 장소, 사진 속 물건까지 뽑아내고,
+            <b>공식 공고와 한 줄씩 대조하거나 상품명을 검색으로 확인한 뒤</b> 내가 확인한 것만 캘린더·지도·추천템에 정리해요.</p>
           <div v-reveal="220" class="hero-cta">
             <button class="primary lg" @click="go('login')"><Sparkles :size="18" />무료로 시작하기<ArrowRight :size="18" /></button>
             <button class="ghost lg" :disabled="busy" @click="tryDemo">{{ busy ? '준비 중…' : '로그인 없이 둘러보기' }}</button>
@@ -38,7 +38,7 @@
 
         <!-- 데모 목업: 링크 → 추출 결과 -->
         <div v-reveal="160" class="mock">
-          <div class="mock-bar"><span class="ic"><Link2 :size="16" /></span><span class="url">instagram.com/p/…</span><span class="go-btn"><Sparkles :size="12" />일정 추출</span></div>
+          <div class="mock-bar"><span class="ic"><Link2 :size="16" /></span><span class="url">instagram.com/p/…</span><span class="go-btn"><Sparkles :size="12" />링크 분석</span></div>
           <div class="mock-body">
             <div class="mock-row" v-for="(m, i) in MOCK" :key="m.title" :style="{ animationDelay: `${0.5 + i * 0.45}s` }">
               <span class="dot" :class="`tone-${m.tone}`"></span>
@@ -161,7 +161,7 @@
         <div v-reveal class="cta-copy">
           <p class="kicker light">지금 시작하기</p>
           <h2>좋아하는 콘텐츠가<br>특별한 일정이 되는 순간</h2>
-          <p class="lead">가입하면 내 일정과 장소가 계정에 저장돼요.<br>먼저 둘러보고 싶다면 데모로 체험해보세요.</p>
+          <p class="lead">가입하면 내 일정·장소·추천템이 계정에 저장돼요.<br>먼저 둘러보고 싶다면 데모로 체험해보세요.</p>
           <ul class="hero-points light">
             <li><Check :size="15" />이메일만으로 가입</li><li><Check :size="15" />언제든 삭제 가능</li>
           </ul>
@@ -204,7 +204,8 @@ const vReveal = reveal
 const MOCK = [
   { title: '서울 재즈 페스티벌', date: '9.12 – 9.14', place: '올림픽공원', tag: '축제·행사', tone: 'pink' },
   { title: '청년 월세 지원 신청', date: '9.1 – 9.30', place: '온라인 신청', tag: '청년 주거', tone: 'green' },
-  { title: '청년 적금 가입 마감', date: '10.16', place: '은행 앱', tag: '금융상품', tone: 'yellow' }
+  { title: '청년 적금 가입 마감', date: '10.16', place: '은행 앱', tag: '금융상품', tone: 'yellow' },
+  { title: '데스크 셋업 추천템', date: '상품 4개', place: '공식몰 · 구매처 링크', tag: '추천템', tone: 'indigo' }
 ]
 const PROBLEMS = [
   { icon: BookmarkX, title: '저장만 하고 잊어버려요', body: '“나중에 신청해야지” 하고 저장한 게시물이 피드 아래로 사라져요. 마감일은 지나 있고요.' },
@@ -212,20 +213,21 @@ const PROBLEMS = [
   { icon: CalendarX, title: '날짜와 장소가 흩어져요', body: '캘린더에 옮겨 적고, 지도를 따로 검색하고… 정리하다 지쳐서 결국 안 가게 돼요.' }
 ]
 const VALUES = [
-  { key: 'extract', title: '링크에서 핵심만 뽑아요', body: '캡션과 이미지를 읽어 이름·대상·자격요건·기간·장소를 구조화해요. 게시물 하나에 일정이 여러 개여도 각각 나눠줘요.' },
-  { key: 'verify', title: '공식 공고와 대조해요', body: '정부·지자체·은행 같은 공식 출처를 찾아 항목별로 비교하고, 근거 문장을 그대로 함께 보여줘요.' },
-  { key: 'organize', title: '캘린더와 지도로 정리해요', body: '확인한 일정만 저장되고, 장소는 자동으로 지도에 찍혀요. 카테고리별로 모아보고 마감 알림도 받아요.' }
+  { key: 'extract', title: '링크에서 핵심만 뽑아요', body: '캡션과 이미지를 읽어 이름·대상·자격요건·기간·장소를 구조화해요. 사진 속 물건은 로고와 글자로 제품을 찾아내고, 게시물 하나에 일정이 여러 개여도 각각 나눠줘요.' },
+  { key: 'verify', title: '공식 공고와 대조해요', body: '정부·지자체·은행 같은 공식 출처를 찾아 항목별로 비교하고, 근거 문장을 그대로 함께 보여줘요. 물건은 웹 검색으로 상품명을 확인해 공식몰·구매처 링크를 붙여요.' },
+  { key: 'organize', title: '캘린더·지도·추천템으로 정리해요', body: '확인한 것만 저장되고, 일정은 캘린더에, 장소는 지도에, 물건은 추천템에 모여요. 카테고리별로 모아보고 마감 알림도 받아요.' }
 ]
 const DOMAINS = ['정부·지자체 (go.kr)', '공공기관', '금융기관', '주최측 공식 페이지']
 const STEPS = [
   { icon: Link2, title: '링크 붙여넣기', body: '인스타그램·블로그·기사 링크를 그대로 붙여넣어요.' },
-  { icon: Wand2, title: 'AI가 정보 추출', body: '캡션과 이미지에서 일정·장소·조건을 찾아내요.' },
-  { icon: ListChecks, title: '공식 공고와 비교 확인', body: '항목별 대조 결과를 보고 날짜와 내용을 확인해요.' },
-  { icon: MapPinned, title: '캘린더·지도에 저장', body: '확인한 것만 저장돼요. 카테고리로 모아볼 수 있어요.' }
+  { icon: Wand2, title: 'AI가 정보 추출', body: '캡션과 이미지에서 일정·장소·조건, 그리고 사진 속 물건까지 찾아내요.' },
+  { icon: ListChecks, title: '공식 공고 · 상품명 확인', body: '항목별 대조 결과를 보고 날짜와 내용을 확인해요. 물건은 검색으로 확인한 상품명과 링크를 보여줘요.' },
+  { icon: MapPinned, title: '캘린더·지도·추천템에 저장', body: '확인한 것만 저장돼요. 카테고리로 모아볼 수 있어요.' }
 ]
 const FAQ = [
   { q: '어떤 링크를 넣을 수 있나요?', a: '인스타그램 게시물, 네이버 블로그, 뉴스 기사처럼 공개된 웹 링크면 됩니다. 인스타그램은 캡션과 첫 이미지를 읽어요. 여러 장 슬라이드의 뒷장은 읽을 수 없어서, 그럴 때는 스크린샷을 함께 올리면 돼요.' },
   { q: '공식 공고는 어떻게 찾나요?', a: '추출한 사업·상품·행사 이름으로 웹을 검색한 뒤, 정부·지자체·공공기관·금융기관처럼 공식 도메인을 먼저 봅니다. 같은 대상을 다루는 공식 문서를 찾지 못하면 연결하지 않고 ‘공식 미확인’으로 표시해요.' },
+  { q: '물건 추천 게시물도 되나요?', a: '네. 사진 속 로고·글자·형태로 제품 후보를 찾고, 웹 검색으로 상품명을 확인해 공식몰·구매처·쇼핑 검색 링크를 붙여요. 다만 사진과 검색 결과로 추정한 것이라 정확하지 않을 수 있어서, 구매 전에 직접 확인하라는 안내를 함께 보여줘요.' },
   { q: 'AI가 잘못 읽으면 어떻게 하나요?', a: '분석 결과는 바로 저장되지 않아요. 확인 화면에서 제목·날짜·카테고리를 직접 고칠 수 있고, 추정한 날짜는 확인 체크를 해야 저장됩니다.' },
   { q: '가입하지 않아도 쓸 수 있나요?', a: '데모 계정으로 둘러볼 수 있어요. 다만 데모는 모두가 함께 쓰는 계정이라, 내 일정만 따로 모으려면 가입이 필요해요.' },
   { q: '어떤 정보를 저장하나요?', a: '이메일, 비밀번호(암호화), 그리고 직접 저장한 일정·장소·메모만 저장해요. 프로필 사진은 올린 경우에만 저장됩니다.' },

@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://nexto:nexto@localhost:5432/nexto"
     llm_api_key: str = ""
     llm_model: str = "gemini-3.6-flash"
+    llm_fallback_models: str = "gemini-3.5-flash-lite,gemini-flash-latest"   # 한도·장애 시 순서대로 대체
     web_search_api_key: str = ""
     public_data_api_key: str = ""
     kakao_rest_api_key: str = ""

@@ -13,7 +13,7 @@
       <div class="pop-wrap">
         <button class="icon" :class="{ on: open === 'search' }" aria-label="저장한 항목 검색" @click="toggle('search')"><Search :size="22" :stroke-width="1.9" /></button>
         <div v-if="open === 'search'" class="pop">
-          <label class="sbox"><Search :size="16" /><input ref="searchEl" v-model="q" placeholder="저장한 일정·장소 검색" /></label>
+          <label class="sbox"><Search :size="16" /><input ref="searchEl" v-model="q" placeholder="저장한 일정·장소·상품 검색" /></label>
           <RouterLink v-for="i in results" :key="i.id" :to="`/items/${i.id}`" class="row" @click="open = ''">
             <span class="thumb" :class="`tone-${CATEGORY[i.category]?.tone ?? 'gray'}`"><CalendarDays :size="16" /></span>
             <span><b>{{ i.title }}</b><small>{{ periodLabel(i.start, i.end) }}<template v-if="i.place"> · {{ i.place.name }}</template></small></span>

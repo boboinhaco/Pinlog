@@ -14,10 +14,11 @@ export function upcomingOf(items, days = 7) {
   }).sort((a, b) => a.key.localeCompare(b.key))
 }
 
-// 제목·장소 이름으로 검색, 비어 있으면 최근 항목
+// 제목·장소·상품 이름으로 검색, 비어 있으면 최근 항목
 export const searchItems = (items, q, limit = 8) => {
-  const k = q.trim()
-  return (k ? items.filter(i => (i.title + (i.place?.name ?? '')).includes(k)) : items).slice(0, limit)
+  const k = q.trim().toLowerCase()
+  const text = i => [i.title, i.place?.name, ...(i.products ?? []).flatMap(p => [p.matched_name, p.name, p.brand])].filter(Boolean).join(' ').toLowerCase()
+  return (k ? items.filter(i => text(i).includes(k)) : items).slice(0, limit)
 }
 
 // 아직 끝나지 않은 일정, 시작일 순
