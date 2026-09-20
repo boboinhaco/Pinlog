@@ -7,9 +7,9 @@
       <AppSidebar v-if="!isMobile" />
       <div class="main">
         <HeroCollage v-if="route.meta.hero" />
-        <div v-else-if="!isMobile" class="topline"></div>
-        <FloatUser v-if="!isMobile" :hero="!!route.meta.hero" />
-        <main class="shell"><RouterView :key="route.fullPath" /></main>
+        <div v-else-if="!isMobile && !route.meta.banner" class="topline"></div>
+        <FloatUser v-if="!isMobile" :hero="!!(route.meta.hero || route.meta.banner)" />
+        <main class="shell" :class="{ flush: route.meta.banner }"><RouterView :key="route.fullPath" /></main>
         <AppFooter />
       </div>
     </div>
@@ -38,5 +38,6 @@ onBeforeUnmount(() => mq.removeEventListener('change', onMq))
 .main { position: relative; min-width: 0; min-height: 100vh; display: flex; flex-direction: column; }
 .topline { height: 64px; }
 .shell { flex: 1; width: 100%; max-width: 1320px; margin: 0 auto; padding: 24px 32px 64px; }
-@media (max-width: 1000px) { .shell { padding: 20px 16px 48px; } }
+.shell.flush { max-width: none; padding: 0; }   /* 홈: 배너가 화면 폭 전체, 본문 폭은 HomeView 안에서 맞춤 */
+@media (max-width: 1000px) { .shell { padding: 20px 16px 48px; } .shell.flush { padding: 0; } }
 </style>

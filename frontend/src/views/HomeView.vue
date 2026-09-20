@@ -1,17 +1,21 @@
 <template>
   <div class="home">
-    <!-- 링크 입력 히어로 -->
+    <!-- 배너: 화면 폭 전체에 사진을 깔고 왼쪽에 브랜드 문구, 아래는 페이지 배경으로 흐려짐. 링크 입력창은 그 위에 걸침 -->
     <section class="hero">
-      <p class="hand tag-line">SNS 속 소중한 순간을, 더 특별한 일상으로</p>
-      <h1><span class="grad-text">{{ BRAND }}</span></h1>
-      <p class="sub">{{ TAGLINE }}</p>
-      <LinkBar id="link" :notice="addedNotice" class="linkbar" />
-      <div class="doodle" aria-hidden="true">
-        <p class="hand">여행도, 일상도<br>기억하고 싶은 모든 순간을<br>{{ BRAND_KO }}와 함께!</p>
-        <svg width="70" height="60" viewBox="0 0 70 60" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M40 20 L66 8 L52 34 L46 24 Z" /><path d="M46 24 L66 8" /><path d="M40 22 C 26 34 20 44 4 50" stroke-dasharray="3 4" /></svg>
+      <div class="banner">
+        <img class="scene" src="/home-bg.jpg" alt="" />
+        <div class="shade" aria-hidden="true"></div>
+        <div class="hero-text">
+          <p class="hand tag-line grad-text">일상이 조금 더 특별해지는 ♡</p>
+          <h1 class="grad-text">{{ BRAND }}</h1>
+          <p class="sub">{{ tag1 }},<br>{{ tag2 }}</p>
+          <ul class="tags" aria-label="이런 것들을 정리해요"><li v-for="t in TAGS" :key="t">#{{ t }}</li></ul>
+        </div>
       </div>
+      <LinkBar id="link" :notice="addedNotice" class="linkbar" />
     </section>
 
+    <div class="inner">
     <!-- 추출된 일정 -->
     <section class="card block">
       <div class="head">
@@ -81,6 +85,7 @@
         </div>
       </section>
     </div>
+    </div>
   </div>
 </template>
 
@@ -92,12 +97,15 @@ import { CATEGORIES, pinColor } from '../utils/labels'
 import { fromItem, mdw } from '../utils/events'
 import { activeSorted, daysUntil, ddayLabel } from '../utils/itemsQuery'
 import { CalendarDays, MapPin, Map as MapIcon, Heart, ChevronRight, LayoutGrid, Sparkles } from 'lucide-vue-next'
-import { BRAND, BRAND_KO, TAGLINE } from '../utils/brand'
+import { BRAND, TAGLINE } from '../utils/brand'
 import LinkBar from '../components/LinkBar.vue'
 import EventCard from '../components/EventCard.vue'
 import CategoryArt from '../components/CategoryArt.vue'
 import PlaceMap from '../components/PlaceMap.vue'
 
+// 배너 문구: 태그라인을 쉼표에서 두 줄로, 해시태그는 장식
+const [tag1, tag2] = TAGLINE.replace(/\.$/, '').split(', ')
+const TAGS = ['공연', '팝업스토어', '전시', '여행', '계절 행사']
 const route = useRoute(), router = useRouter()
 const items = ref([]), places = ref([]), filter = ref(''), loaded = ref(false), addedNotice = ref('')
 const W = ['일', '월', '화', '수', '목', '금', '토']
@@ -133,15 +141,25 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.home { display: grid; gap: 22px; }
-.home > *, .duo > * { min-width: 0; }
-.hero { position: relative; text-align: center; padding: 6px 0 4px; }
-.tag-line { margin: 0; font-size: 24px; color: var(--hand-ink); }
-.hero h1 { margin: 2px 0 8px; font-size: clamp(46px, 5.6vw, 68px); font-weight: 800; letter-spacing: -.05em; line-height: 1.1; }
-.sub { margin: 0 0 24px; font-size: 17px; color: var(--muted); }
-.linkbar { max-width: 980px; margin: 0 auto; }
-.doodle { position: absolute; right: 0; top: 20px; color: var(--hand-ink); display: flex; align-items: flex-end; gap: 4px; transform: rotate(-6deg); pointer-events: none; }
-.doodle p { margin: 0; font-size: 21px; line-height: 1.25; text-align: left; }
+.home { display: grid; }
+/* 배너 아래 본문은 원래 페이지 폭으로 */
+.inner { width: 100%; max-width: 1320px; margin: 0 auto; padding: 26px 32px 64px; display: grid; gap: 22px; }
+.inner > *, .duo > * { min-width: 0; }
+.hero { position: relative; }
+.banner { position: relative; min-height: 440px; overflow: hidden; background: #f6e9ec; }
+/* 배경 사진(책상 셋업, 모니터·화병이 가운데 오게 자름): 왼쪽 글자 뒤는 흰색으로, 아래쪽은 페이지 배경으로 흐려짐 */
+.scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 46%; }
+.shade { position: absolute; inset: 0; background:
+  linear-gradient(180deg, rgba(250, 250, 250, 0) 42%, rgba(250, 250, 250, .72) 80%, var(--bg) 100%),
+  linear-gradient(90deg, rgba(255, 255, 255, .96) 0%, rgba(255, 255, 255, .88) 26%, rgba(255, 255, 255, .4) 46%, rgba(255, 255, 255, 0) 62%); }
+.hero-text { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 62px 32px 100px; }
+.hero-text > * { max-width: 560px; }
+.tag-line { display: inline-block; margin: 0 0 2px; font-size: 27px; line-height: 1.1; }
+.hero h1 { margin: 0 0 12px; font-size: clamp(46px, 5.6vw, 66px); font-weight: 800; letter-spacing: -.05em; line-height: 1.05; }
+.sub { margin: 0 0 16px; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.tags li { padding: 4px 11px; border-radius: 999px; background: rgba(255, 255, 255, .85); border: 1px solid var(--line-strong); font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.linkbar { position: relative; z-index: 2; max-width: 1012px; margin: -46px auto 0; padding: 0 16px; }
 .block { margin: 0; padding: 22px 24px; }
 .head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 16px; }
 .head .section-title { margin: 0; }
@@ -188,7 +206,6 @@ onMounted(async () => {
 .ut b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ut small { font-size: 12.5px; color: var(--muted); }
 .up { display: inline-flex; align-items: center; gap: 4px; max-width: 150px; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 1400px) { .doodle { display: none; } }
 @media (max-width: 1280px) { .duo { grid-template-columns: 1fr; } }
 @media (max-width: 1100px) { .cards { grid-auto-columns: calc((100% - 2 * 16px) / 3); } }
 @media (max-width: 760px) {
@@ -197,7 +214,15 @@ onMounted(async () => {
   .ur .dot, .ur .up { display: none; }
   .places { grid-template-columns: 1fr; height: auto; }
   .map-box { height: 240px; }
-  .tag-line { font-size: 20px; }
-  .sub { font-size: 15px; }
+  .inner { padding: 20px 16px 48px; }
+  .banner { min-height: 360px; }
+  /* 좁은 화면에선 사진을 더 옅게 깔아 글자가 먼저 보이게 */
+  .scene { object-position: 62% 45%; }
+  .shade { background: linear-gradient(180deg, rgba(250, 250, 250, 0) 38%, var(--bg) 100%), linear-gradient(90deg, rgba(255, 255, 255, .95) 0%, rgba(255, 255, 255, .75) 60%, rgba(255, 255, 255, .3) 100%); }
+  .hero-text { padding: 40px 16px 80px; }
+  .tag-line { font-size: 21px; }
+  .hero h1 { font-size: 44px; }
+  .sub { font-size: 14.5px; }
+  .linkbar { margin-top: -30px; padding: 0 10px; }
 }
 </style>

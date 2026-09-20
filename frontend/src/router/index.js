@@ -5,7 +5,7 @@ import { useAuthStore } from '../stores/auth'
 const routes = [
   { path: '/', component: () => import('../views/LandingView.vue'), meta: { bare: true, public: true } },
   { path: '/login', redirect: to => ({ path: '/', query: to.query, hash: '#login' }) },
-  { path: '/home', component: () => import('../views/HomeView.vue'), meta: { hero: true } },
+  { path: '/home', component: () => import('../views/HomeView.vue'), meta: { banner: true } },   // 콜라주 대신 책상 배너
   { path: '/category/:key', component: () => import('../views/CategoryView.vue') },
   { path: '/upload', component: () => import('../views/UploadView.vue') },
   { path: '/analyze/:jobId', component: () => import('../views/AnalyzeView.vue') },
