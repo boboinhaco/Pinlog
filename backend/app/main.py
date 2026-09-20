@@ -1,5 +1,7 @@
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -10,11 +12,22 @@ from .db.bootstrap import ensure_schema
 from .api import auth, shares, jobs, items, calendar, places
 
 
-# 시작할 때 DB 스키마 준비 (새 DB면 테이블 생성)
+# 무료 호스팅은 15분 동안 요청이 없으면 잠드므로 5분마다 자기 공개 주소를 호출해 깨어 있게 함
+async def _keep_alive(url: str):
+    async with httpx.AsyncClient(timeout=20) as client:
+        while True:
+            await asyncio.sleep(300)
+            try: await client.get(f"{url.rstrip('/')}/health")
+            except Exception: pass
+
+
+# 시작할 때 DB 스키마 준비 (새 DB면 테이블 생성), 배포 환경이면 슬립 방지 시작
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await ensure_schema()
+    task = asyncio.create_task(_keep_alive(settings.render_external_url)) if settings.keep_alive and settings.render_external_url else None
     yield
+    if task: task.cancel()
 
 
 app = FastAPI(title="Pinlog API", version="3.0", lifespan=lifespan)
