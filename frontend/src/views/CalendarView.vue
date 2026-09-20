@@ -30,9 +30,20 @@
         <section class="card block month-card"><NotionCalendar v-model:month="month" :events="filteredMonth" :max-lanes="3" /></section>
       </div>
       <div class="col">
-        <section id="upcoming" class="card block">
-          <div class="hd"><h2 class="section-title">다가오는 일정</h2><RouterLink to="/items" class="more-link">전체보기<ChevronRight :size="16" /></RouterLink></div>
-          <div v-for="u in filteredUpcoming.slice(0, 6)" :key="u.id" class="up">
+        <section id="upcoming" class="card block up-card">
+          <div class="hd">
+            <h2 class="section-title">다가오는 일정 <small v-if="filteredUpcoming.length">{{ filteredUpcoming.length }}개</small></h2>
+            <RouterLink to="/items" class="more-link">전체보기<ChevronRight :size="16" /></RouterLink>
+          </div>
+          <!-- 카테고리 필터: 캘린더와 목록에 함께 적용 -->
+          <div class="chips">
+            <button :class="{ on: !filter }" @click="setFilter('')">전체 <em>{{ items.length }}</em></button>
+            <button v-for="c in presentCats" :key="c.key" class="tag" :class="[`tone-${c.tone}`, { on: filter === c.key }]" @click="setFilter(filter === c.key ? '' : c.key)">
+              {{ c.label }} <em>{{ counts[c.key] }}</em>
+            </button>
+          </div>
+          <div class="list">
+          <div v-for="u in pageItems" :key="u.id" class="up">
             <span class="dbox"><b>{{ md(u.start) }}</b><small>{{ wd(u.start) }}</small></span>
             <span class="th"><img v-if="u.image" :src="u.image" alt="" referrerpolicy="no-referrer" @error="u.image = null" /><CategoryArt v-else :kind="u.category" fill /></span>
             <RouterLink :to="`/items/${u.id}`" class="txt">
@@ -51,21 +62,12 @@
             </div>
           </div>
           <p v-if="loaded && !filteredUpcoming.length" class="empty">다가오는 일정이 없어요.</p>
-        </section>
-
-        <section class="card block cat-card">
-          <h2 class="section-title">카테고리로 보기</h2>
-          <div class="chips">
-            <button :class="{ on: !filter }" @click="filter = ''">전체 <em>{{ items.length }}</em></button>
-            <button v-for="c in presentCats" :key="c.key" class="tag" :class="[`tone-${c.tone}`, { on: filter === c.key }]" @click="filter = filter === c.key ? '' : c.key">
-              {{ c.label }} <em>{{ counts[c.key] }}</em>
-            </button>
           </div>
-          <div class="note">
-            <p class="hand">계획하는 시간이<br>언제나 즐거우니까.</p>
-            <span class="sig serif">{{ BRAND }} —</span>
-            <div class="note-art"><SceneArt scene="flowers" /></div>
-            <p class="hand small">좋은 경험이<br>좋은 하루를 만들어요. :)</p>
+          <!-- 페이지가 하나여도 자리를 유지해 박스 높이가 흔들리지 않게 -->
+          <div class="pager" :class="{ hide: pages <= 1 }">
+            <button class="ghost sq" :disabled="page === 0" aria-label="이전 5개" @click="page--"><ChevronLeft :size="18" /></button>
+            <span>{{ page + 1 }} / {{ pages }}</span>
+            <button class="ghost sq" :disabled="page >= pages - 1" aria-label="다음 5개" @click="page++"><ChevronRight :size="18" /></button>
           </div>
         </section>
       </div>
@@ -82,18 +84,17 @@ import { Plus, CalendarDays, MapPin, ChevronLeft, ChevronRight, Ellipsis, Eye, P
 import { getItems, getCalendar, deleteItem } from '../api/nexto'
 import { CATEGORIES, CATEGORY } from '../utils/labels'
 import { periodLabel, fromItem, fromCalendar, mergeById, monthRange, ymd } from '../utils/events'
-import { BRAND } from '../utils/brand'
 import PageHero from '../components/PageHero.vue'
 import NotionCalendar from '../components/NotionCalendar.vue'
 import CategoryArt from '../components/CategoryArt.vue'
-import SceneArt from '../components/SceneArt.vue'
 import ItemEditor from '../components/ItemEditor.vue'
 
 const W = ['일', '월', '화', '수', '목', '금', '토']
 // ?month=YYYY-MM 으로 들어오면 그 달부터 (검토 화면에서 저장 직후)
 const route = useRoute()
 const month = ref(/^\d{4}-\d{2}$/.test(route.query.month ?? '') ? new Date(route.query.month + '-01T00:00') : new Date(new Date().getFullYear(), new Date().getMonth(), 1))
-const items = ref([]), monthEvents = ref([]), filter = ref(''), loaded = ref(false), editor = ref(null), menu = ref('')
+const PAGE = 5
+const items = ref([]), monthEvents = ref([]), filter = ref(''), loaded = ref(false), editor = ref(null), menu = ref(''), page = ref(0)
 const today = ymd(new Date())
 
 const monthKey = computed(() => ymd(month.value).slice(0, 7))
@@ -107,6 +108,11 @@ const counts = computed(() => items.value.reduce((a, i) => ({ ...a, [i.category]
 const presentCats = computed(() => CATEGORIES.filter(c => counts.value[c.key]))
 const upcoming = computed(() => items.value.filter(i => i.start && (i.end || i.start) >= today).sort((a, b) => a.start.localeCompare(b.start)))
 const filteredUpcoming = computed(() => upcoming.value.filter(i => !filter.value || i.category === filter.value))
+// 5개씩 좌우로 넘김, 필터가 바뀌면 첫 장으로
+const pages = computed(() => Math.max(1, Math.ceil(filteredUpcoming.value.length / PAGE)))
+const pageItems = computed(() => filteredUpcoming.value.slice(page.value * PAGE, page.value * PAGE + PAGE))
+const setFilter = v => { filter.value = v; page.value = 0 }
+watch(pages, n => { if (page.value > n - 1) page.value = Math.max(0, n - 1) })
 const monthItems = computed(() => monthEvents.value)
 const filteredMonth = computed(() => monthEvents.value.filter(e => !filter.value || e.category === filter.value))
 const visitPlaces = computed(() => [...new Map(upcoming.value.filter(i => i.place?.name).map(i => [i.place.name, i])).values()])
@@ -152,11 +158,13 @@ onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 .cal > * { min-width: 0; }
 .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .col > :last-child { flex: 1; }
-.cat-card { display: flex; flex-direction: column; }
-.cat-card .note { margin-top: auto; }
-.cat-card .chips { margin-bottom: 16px; }
 .block { margin: 0; padding: 20px 22px; }
 .hd { display: flex; justify-content: space-between; align-items: center; }
+.up-card { display: flex; flex-direction: column; }
+/* 5행 높이를 확보해 필터로 항목이 줄어도 박스가 흔들리지 않게 */
+.list { flex: 1; min-height: 438px; }
+.pager { display: flex; justify-content: center; align-items: center; gap: 12px; padding-top: 10px; font-size: 13.5px; color: var(--muted); }
+.pager.hide { visibility: hidden; }
 .up { display: grid; grid-template-columns: 58px 72px 1fr auto auto; gap: 12px; align-items: center; padding: 10px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 12px; }
 .dbox { display: grid; place-items: center; align-content: center; height: 58px; border-radius: 14px; background: var(--grad-soft); color: var(--accent); }
 .dbox b { font-size: 16px; }
@@ -173,21 +181,14 @@ onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 .pl { display: inline-flex; align-items: center; gap: 4px; }
 .menu a:hover { background: var(--hover); }
 .menu .danger { color: var(--i-red); }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .chips button { padding: 7px 16px; border-radius: 999px; border: 1.5px solid transparent; font-size: 14px; font-weight: 600; background: var(--hover); color: var(--ink-2); }
 .chips button.on { border-color: var(--ink); background: #fff; color: var(--ink); }
 .chips em { font-style: normal; margin-left: 6px; font-weight: 500; opacity: .8; }
-.note { position: relative; display: grid; grid-template-columns: 1fr 120px 1fr; align-items: center; gap: 10px; margin-top: 16px; padding: 16px 20px; border-radius: 14px; background: var(--grad-soft); overflow: hidden; }
-.note p { margin: 0; font-size: 21px; line-height: 1.25; color: var(--hand-ink); }
-.note .small { font-size: 17px; }
-.note .sig { position: absolute; left: 20px; bottom: 8px; font-size: 15px; color: var(--hand-ink); }
-.note-art { height: 80px; border-radius: 10px; overflow: hidden; }
-.note-art :deep(svg) { width: 100%; height: 100%; display: block; }
 @media (max-width: 1280px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 900px) { .strip { grid-template-columns: 1fr; } .month-nav { justify-content: center; padding: 8px; } }
 @media (max-width: 560px) {
   .up { grid-template-columns: 52px 1fr auto; }
   .up .th, .up .tag { display: none; }
-  .note { grid-template-columns: 1fr; } .note-art, .note .small { display: none; }
 }
 </style>

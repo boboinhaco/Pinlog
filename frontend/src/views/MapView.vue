@@ -100,8 +100,9 @@ const inTab = (p, t) => t === 'all' || (t === 'recent' && p.recent) || (t === 'l
 const tabCount = t => places.value.filter(p => inTab(p, t)).length
 const filtered = computed(() => places.value.filter(p => inTab(p, tab.value) && (!cat.value || p.category === cat.value) && (!region.value || p.region === region.value)
   && (!q.value.trim() || [p.name, p.address, ...p.items.map(i => i.title)].join(' ').includes(q.value.trim()))))
-const sorted = computed(() => [...filtered.value].sort((a, b) =>
-  sort.value === 'name' ? a.name.localeCompare(b.name) : sort.value === 'date' ? a.first.localeCompare(b.first) : b.created.localeCompare(a.created)))
+// 즐겨찾기가 항상 맨 위, 그다음 선택한 정렬
+const sorted = computed(() => [...filtered.value].sort((a, b) => (b.liked - a.liked) ||
+  (sort.value === 'name' ? a.name.localeCompare(b.name) : sort.value === 'date' ? a.first.localeCompare(b.first) : b.created.localeCompare(a.created))))
 const savedLabel = c => { if (!c) return ''; const d = new Date(c); return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.` }
 
 // 즐겨찾기 = 그 장소의 일정들에 좋아요
@@ -120,7 +121,7 @@ onMounted(async () => { items.value = (await getItems()).map(fromItem); loaded.v
 .search input { border: 0; padding: 14px 0; font-size: 15px; }
 .search input:focus { outline: none; }
 .tools select { height: 100%; min-height: 50px; border-radius: 14px; font-weight: 600; }
-.view { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; font-weight: 600; padding: 0 20px; }
+.view { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 136px; border-radius: 14px; font-weight: 600; padding: 0 20px; }
 .tabs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .tabs { display: flex; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .tabs button { display: grid; min-width: 104px; padding: 6px 18px; border-radius: 0; background: none; color: var(--ink-2); font-weight: 600; }

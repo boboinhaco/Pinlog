@@ -1,6 +1,7 @@
 <template>
   <section>
     <h1 class="page-title">저장됨 <small>{{ items.length }}개</small></h1>
+    <p v-if="source" class="src-note"><span class="tag tone-gray">{{ SOURCE_LABEL[source] ?? source }} 링크만</span><RouterLink to="/items">전체 보기</RouterLink></p>
     <div class="filters">
       <button class="tag" :class="filter ? 'tone-gray off' : 'tone-gray'" @click="filter = ''">전체</button>
       <button v-for="c in CATEGORIES" :key="c.key" class="tag" :class="[`tone-${c.tone}`, { off: filter && filter !== c.key }]" @click="filter = filter === c.key ? '' : c.key">
@@ -24,20 +25,27 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { sourceOf } from '../utils/source'
 import { getItems } from '../api/nexto'
 import { CATEGORIES, GRADE } from '../utils/labels'
 import { periodLabel, fromItem } from '../utils/events'
 
-const items = ref([]), filter = ref(''), loaded = ref(false)
+const SOURCE_LABEL = { instagram: 'Instagram', youtube: 'YouTube', blog: '블로그', etc: '기타' }
+const route = useRoute(), all = ref([]), filter = ref(''), loaded = ref(false)
+const source = computed(() => typeof route.query.source === 'string' ? route.query.source : '')
+const items = computed(() => all.value.filter(i => !source.value || sourceOf(i.sourceUrl).key === source.value))
 const counts = computed(() => items.value.reduce((a, i) => ({ ...a, [i.category]: (a[i.category] ?? 0) + 1 }), {}))
 const groups = computed(() => CATEGORIES.filter(c => !filter.value || c.key === filter.value)
   .map(c => ({ ...c, items: items.value.filter(i => (i.category ?? 'OTHER') === c.key) })).filter(g => g.items.length))
-onMounted(async () => { items.value = (await getItems()).map(fromItem); loaded.value = true })
+onMounted(async () => { all.value = (await getItems()).map(fromItem); loaded.value = true })
 </script>
 
 <style scoped>
 .page-title small { font-size: 15px; font-weight: 500; color: var(--faint); margin-left: 6px; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.src-note { display: flex; align-items: center; gap: 10px; margin: -8px 0 12px; font-size: 13px; }
+.src-note a { color: var(--muted); }
 .filters .tag { border: 0; padding: 5px 12px; font-size: 13px; cursor: pointer; }
 .filters .tag.off { opacity: .45; }
 .group { margin: 16px 0 0; padding: 18px 22px; }

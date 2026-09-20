@@ -1,6 +1,6 @@
 <template>
   <div class="collage" aria-hidden="true">
-    <div class="p"><SceneArt scene="coast" /></div>
+    <div class="p first"><SceneArt scene="coast" /><span class="overlay-l">좋아하는 걸,<br>더 가까운 일상으로</span></div>
     <div class="p"><SceneArt scene="houses" /></div>
     <div class="p hide-sm"><SceneArt scene="window" /></div>
     <div class="p text">
@@ -11,7 +11,7 @@
     <div class="p"><SceneArt scene="flowers" /></div>
     <div class="p hide-sm"><SceneArt scene="coffee" /></div>
     <div class="p note-p hide-sm"><div class="note-card">Collect<br>&nbsp;Plan<br>&nbsp;&nbsp;Go !</div></div>
-    <div class="p last"><SceneArt scene="sea" /><span class="overlay">Places<br>&nbsp;Events<br>&nbsp;&nbsp;Memories</span></div>
+    <div class="p last"><SceneArt scene="sea" /><span class="overlay">Places<br>&nbsp;Events<br>&nbsp;&nbsp;Memories<br>&nbsp;&nbsp;&nbsp;and More!</span></div>
   </div>
 </template>
 
@@ -31,7 +31,8 @@ import SceneArt from './SceneArt.vue'
 .text b { font-family: var(--serif); font-size: 28px; font-weight: 600; font-style: italic; background: var(--cta); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .note-p { background: #fdeaf1; display: grid; place-items: center; }
 .note-card { width: 76%; aspect-ratio: 4 / 5; padding: 14px 10px; background: #fffdfb; box-shadow: 0 6px 16px rgba(120, 30, 80, .15); transform: rotate(-8deg); font-family: var(--hand-en); font-size: 21px; line-height: 1.2; color: var(--hand-ink); }
-.overlay { position: absolute; right: 16px; top: 22px; font-family: var(--hand-en); font-size: 24px; line-height: 1.15; color: #fff; transform: rotate(-8deg); text-shadow: 0 1px 8px rgba(90, 20, 70, .4); }
+.overlay-l { position: absolute; left: 18px; top: 22px; font-family: var(--hand-ko); font-size: 26px; line-height: 1.15; color: #fff; transform: rotate(-6deg); text-shadow: 0 1px 8px rgba(90, 20, 70, .45); }
+.overlay { position: absolute; right: 16px; top: 70px; font-family: var(--hand-en); font-size: 22px; line-height: 1.08; color: #fff; transform: rotate(-8deg); text-shadow: 0 1px 8px rgba(90, 20, 70, .4); }
 @media (max-width: 900px) {
   .collage { grid-template-columns: 1.2fr 1fr 1.2fr 1fr 1.2fr; height: 150px; }
   .hide-sm { display: none; }

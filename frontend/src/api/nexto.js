@@ -1,3 +1,4 @@
+import axios from 'axios'
 import client from './client'
 
 // 명세서 9장 API 래퍼
@@ -20,6 +21,14 @@ export const deleteItem = (itemId) => client.delete(`/items/${itemId}`)
 export const createManualItem = (body) => client.post('/items/manual', body)
 export const getCalendar = (from, to) => client.get('/calendar', { params: { from, to } })
 export const getPlaces = () => client.get('/places')
+
+// 캘린더 앱용 .ics 내려받기 (토큰이 필요해서 링크 대신 fetch 후 저장)
+export async function downloadIcs() {
+  const r = await axios.get('/api/calendar/ics', { responseType: 'blob', headers: { Authorization: `Bearer ${localStorage.getItem('nexto_token')}` } })
+  const url = URL.createObjectURL(r.data)
+  Object.assign(document.createElement('a'), { href: url, download: 'pinlog.ics' }).click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
 
 // SSE 구독, 실패 시 2초 polling으로 fallback
 export const watchJob = (jobId, handlers) => {

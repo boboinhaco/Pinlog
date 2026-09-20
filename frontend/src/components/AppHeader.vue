@@ -47,7 +47,8 @@ import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { Search, Bell, CalendarDays, Clock } from 'lucide-vue-next'
 import { getItems } from '../api/nexto'
-import { fromItem, periodLabel, ymd } from '../utils/events'
+import { fromItem, periodLabel } from '../utils/events'
+import { upcomingOf, searchItems } from '../utils/itemsQuery'
 import { CATEGORY } from '../utils/labels'
 import PinLogo from './PinLogo.vue'
 import UserMenu from './UserMenu.vue'
@@ -60,20 +61,8 @@ async function toggle(name) {
   open.value = open.value === name ? '' : name
   if (open.value === 'search') { await nextTick(); searchEl.value?.focus() }
 }
-const results = computed(() => {
-  const k = q.value.trim()
-  return k ? items.value.filter(i => (i.title + (i.place?.name ?? '')).includes(k)).slice(0, 8) : items.value.slice(0, 5)
-})
-// 시작일 또는 마감일이 오늘~7일 안
-const upcoming = computed(() => {
-  const today = ymd(new Date()), week = ymd(new Date(Date.now() + 7 * 86400000))
-  return items.value.flatMap(i => {
-    if (i.start && i.start >= today && i.start <= week) return [{ ...i, label: `${diff(i.start)} 시작 · ${periodLabel(i.start, i.end)}`, key: i.start }]
-    if (i.end && i.end >= today && i.end <= week) return [{ ...i, label: `${diff(i.end)} 마감 · ${periodLabel(i.start, i.end)}`, key: i.end }]
-    return []
-  }).sort((a, b) => a.key.localeCompare(b.key))
-})
-const diff = d => { const n = Math.round((new Date(d + 'T00:00') - new Date(ymd(new Date()) + 'T00:00')) / 86400000); return n === 0 ? '오늘' : `D-${n}` }
+const results = computed(() => searchItems(items.value, q.value))
+const upcoming = computed(() => upcomingOf(items.value))
 
 // 바깥 클릭 시 닫기
 const onDoc = e => { if (root.value && !root.value.contains(e.target)) open.value = '' }
@@ -94,7 +83,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
 .pop-wrap { position: relative; }
 .icon { position: relative; display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border-radius: 12px; background: none; color: var(--ink); }
 .icon:hover, .icon.on { background: var(--hover); }
-.dot { position: absolute; top: 4px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #ff3040; color: #fff; font-size: 10.5px; font-style: normal; font-weight: 700; line-height: 17px; border: 2px solid #fff; box-sizing: content-box; }
+.dot { position: absolute; top: 6px; right: 6px; transform: translate(40%, -40%); min-width: 14px; height: 14px; padding: 0 3px; border-radius: 8px; background: #ff3040; color: #fff; font-size: 9.5px; font-style: normal; font-weight: 700; line-height: 14px; border: 2px solid #fff; box-sizing: content-box; }
 .pop { position: absolute; right: 0; top: 52px; width: 320px; padding: 8px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-lg); }
 .sbox { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 0 12px; border-radius: 12px; background: var(--hover); color: var(--muted); }
 .sbox input { border: 0; background: none; padding: 10px 0; box-shadow: none; }

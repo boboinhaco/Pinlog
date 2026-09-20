@@ -2,7 +2,7 @@
   <div class="home">
     <!-- 링크 입력 히어로 -->
     <section class="hero">
-      <p class="hand tag-line">좋아하는 걸, 더 가까운 일상으로.</p>
+      <p class="hand tag-line">SNS 속 소중한 순간을, 더 특별한 일상으로</p>
       <h1><span class="grad-text">{{ BRAND }}</span></h1>
       <p class="sub">{{ TAGLINE }}</p>
       <LinkBar id="link" :notice="addedNotice" class="linkbar" />
@@ -37,7 +37,7 @@
       <!-- 저장된 장소 -->
       <section class="card block">
         <div class="head">
-          <h2 class="section-title"><MapPin :size="24" />저장된 장소 <small>{{ places.length }}개의 장소가 저장되어 있어요!</small></h2>
+          <h2 class="section-title"><MapPin :size="24" />저장된 장소 <small>가고 싶은 곳을 저장하고, 지도로 한눈에 확인해보세요.</small></h2>
           <RouterLink to="/map" class="more-link">전체보기<ChevronRight :size="16" /></RouterLink>
         </div>
         <div class="places">
@@ -49,52 +49,86 @@
           </div>
           <div class="plist">
             <RouterLink v-for="p in places.slice(0, 4)" :key="p.name" :to="`/items/${p.items[0].item_id}`" class="place">
-              <span class="th"><CategoryArt :kind="p.category" fill /></span>
+              <span class="th"><img v-if="p.image" :src="p.image" alt="" referrerpolicy="no-referrer" @error="p.image = null" /><CategoryArt v-else :kind="p.category" fill /></span>
               <span class="txt"><b>{{ p.name }}</b><small>{{ p.address || p.items[0].title }}</small></span>
-              <Bookmark class="bm" :size="18" fill="currentColor" aria-label="저장됨" />
+              <button class="heart" :class="{ on: p.liked }" :aria-pressed="p.liked" :aria-label="p.liked ? '즐겨찾기 해제' : '즐겨찾기'" @click.prevent.stop="togglePlace(p)">
+                <Heart :size="18" :stroke-width="2" :fill="p.liked ? 'currentColor' : 'none'" />
+              </button>
             </RouterLink>
             <p v-if="!places.length" class="empty">장소가 있는 일정을 저장하면 여기에 모여요.</p>
           </div>
         </div>
       </section>
 
-      <!-- 월간 일정표 -->
-      <section class="card block"><NotionCalendar v-model:month="month" :events="calEvents" compact :max-lanes="2" /></section>
+      <!-- 다가오는 일정 -->
+      <section class="card block">
+        <div class="head">
+          <h2 class="section-title"><CalendarDays :size="24" />다가오는 일정 <small>이번 달, 놓치지 말아야 할 일정이에요.</small></h2>
+          <RouterLink to="/calendar" class="more-link">전체보기<ChevronRight :size="16" /></RouterLink>
+        </div>
+        <div class="upl">
+          <RouterLink v-for="u in upcoming" :key="u.id" :to="`/items/${u.id}`" class="ur">
+            <span class="dbox"><b>{{ md(u.start) }}</b><small>{{ wd(u.start) }}</small></span>
+            <i class="dot" :style="{ background: pinColor(u.category) }"></i>
+            <span class="ut">
+              <b>{{ u.title }}</b>
+              <small>{{ mdw(u.start) }}<template v-if="u.end && u.end !== u.start"> - {{ mdw(u.end) }}</template></small>
+            </span>
+            <span v-if="u.place" class="up"><MapPin :size="14" />{{ u.place.name }}</span>
+            <span class="tag" :class="daysUntil(u.start) <= 7 ? 'tone-red' : 'tone-pink'">{{ ddayLabel(u.start) }}</span>
+          </RouterLink>
+          <p v-if="loaded && !upcoming.length" class="empty">다가오는 일정이 없어요. 링크를 넣어 일정을 추가해보세요.</p>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPlaces, getItems, getCalendar } from '../api/nexto'
-import { CATEGORIES } from '../utils/labels'
-import { fromItem, fromCalendar, mergeById, monthRange } from '../utils/events'
-import { CalendarDays, MapPin, Map as MapIcon, Bookmark, ChevronRight, LayoutGrid } from 'lucide-vue-next'
+import { getPlaces, getItems, patchItem } from '../api/nexto'
+import { CATEGORIES, pinColor } from '../utils/labels'
+import { fromItem, mdw } from '../utils/events'
+import { activeSorted, daysUntil, ddayLabel } from '../utils/itemsQuery'
+import { CalendarDays, MapPin, Map as MapIcon, Heart, ChevronRight, LayoutGrid } from 'lucide-vue-next'
 import { BRAND, BRAND_KO, TAGLINE } from '../utils/brand'
 import LinkBar from '../components/LinkBar.vue'
 import EventCard from '../components/EventCard.vue'
 import CategoryArt from '../components/CategoryArt.vue'
 import PlaceMap from '../components/PlaceMap.vue'
-import NotionCalendar from '../components/NotionCalendar.vue'
 
 const route = useRoute(), router = useRouter()
 const items = ref([]), places = ref([]), filter = ref(''), loaded = ref(false), addedNotice = ref('')
-const month = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), calEvents = ref([])
-watch(month, async m => { calEvents.value = mergeById((await getCalendar(...monthRange(m))).map(fromCalendar)) }, { immediate: true })
+const W = ['일', '월', '화', '수', '목', '금', '토']
+const md = s => { const [, m, d] = s.split('-'); return `${+m}.${+d}` }
+const wd = s => W[new Date(s + 'T00:00').getDay()]
+// 아직 끝나지 않은 일정 5개
+const upcoming = computed(() => activeSorted(items.value).slice(0, 5))
 
 // 최근 저장 순, 필터는 실제로 있는 카테고리만
 const presentCats = computed(() => CATEGORIES.filter(c => items.value.some(i => i.category === c.key)))
 const shown = computed(() => items.value.filter(i => !filter.value || i.category === filter.value))
 
+// 장소 즐겨찾기 = 그 장소의 일정들에 좋아요
+async function togglePlace(p) {
+  const v = !p.liked; p.liked = v
+  try { await Promise.all(p.items.map(x => patchItem(x.item_id, { fields: { liked: v } }))); items.value.forEach(i => { if (p.items.some(x => x.item_id === i.id)) i.liked = v }) } catch { p.liked = !v }
+}
+const focusLink = () => { const el = document.querySelector('#link input'); el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); el?.focus() }
+
 onMounted(async () => {
   if (route.query.added) { addedNotice.value = `${route.query.added}건을 일정에 추가했어요.`; router.replace({ query: {} }) }
   const [its, pls] = await Promise.all([getItems(), getPlaces()])
   items.value = its.map(fromItem).sort((a, b) => (b.created ?? '').localeCompare(a.created ?? ''))
-  // 장소 썸네일용 카테고리
-  const catById = Object.fromEntries(its.map(i => [i.item_id, i.category]))
-  places.value = pls.map(p => ({ ...p, category: catById[p.items[0]?.item_id] ?? 'OTHER' }))
+  // 장소 썸네일·즐겨찾기는 그 장소의 일정에서
+  const byId = Object.fromEntries(its.map(i => [i.item_id, i]))
+  places.value = pls.map(p => {
+    const first = byId[p.items[0]?.item_id]
+    return { ...p, category: first?.category ?? 'OTHER', image: first?.fields?.image_url ?? null, liked: p.items.some(x => byId[x.item_id]?.fields?.liked) }
+  })
   loaded.value = true
+  if (route.hash === '#link') focusLink()
 })
 </script>
 
@@ -139,12 +173,28 @@ onMounted(async () => {
 .txt { flex: 1; min-width: 0; display: grid; }
 .txt b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .txt small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bm { flex: none; color: var(--ink); }
+.heart { flex: none; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border-radius: 50%; background: none; color: var(--muted); }
+.heart:hover { background: var(--hover); }
+.heart.on { color: #ff3040; }
+.th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.upl { display: grid; gap: 8px; }
+.ur { display: grid; grid-template-columns: 56px 10px 1fr auto auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; text-decoration: none; transition: box-shadow .15s; }
+.ur:hover { box-shadow: var(--shadow); }
+.dbox { display: grid; place-items: center; align-content: center; height: 50px; border-radius: 12px; background: var(--grad-soft); color: var(--accent); }
+.dbox b { font-size: 14.5px; }
+.dbox small { font-size: 11.5px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.ut { display: grid; min-width: 0; }
+.ut b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ut small { font-size: 12.5px; color: var(--muted); }
+.up { display: inline-flex; align-items: center; gap: 4px; max-width: 150px; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 1400px) { .doodle { display: none; } }
 @media (max-width: 1280px) { .duo { grid-template-columns: 1fr; } }
 @media (max-width: 1100px) { .cards { grid-auto-columns: calc((100% - 2 * 16px) / 3); } }
 @media (max-width: 760px) {
   .cards { grid-auto-columns: 78%; }
+  .ur { grid-template-columns: 50px 1fr auto; }
+  .ur .dot, .ur .up { display: none; }
   .places { grid-template-columns: 1fr; height: auto; }
   .map-box { height: 240px; }
   .tag-line { font-size: 20px; }

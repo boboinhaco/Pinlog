@@ -40,3 +40,6 @@ export const periodLong = (start, end) => {
   if (!start || !end || start === end) return `${y}. ${full(start || end)}`
   return `${y}. ${full(start)} – ${full(end)}`
 }
+
+// "09.12 (토)" 형식
+export const mdw = s => { const d = new Date(s + 'T00:00'); return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} (${W[d.getDay()]})` }
