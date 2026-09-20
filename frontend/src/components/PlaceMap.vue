@@ -21,14 +21,14 @@ let map, layer, resize
 
 const pinIcon = name => L.divIcon({
   className: 'nx-pin', iconSize: null, iconAnchor: [11, 28],
-  html: `<svg width="22" height="28" viewBox="0 0 22 28"><path d="M11 0C4.9 0 0 4.8 0 10.8 0 18.9 11 28 11 28s11-9.1 11-17.2C22 4.8 17.1 0 11 0z" fill="#448361"/><circle cx="11" cy="10.5" r="4" fill="#fff"/></svg><span>${name.replace(/</g, '&lt;')}</span>`
+  html: `<svg width="22" height="28" viewBox="0 0 22 28"><path d="M11 0C4.9 0 0 4.8 0 10.8 0 18.9 11 28 11 28s11-9.1 11-17.2C22 4.8 17.1 0 11 0z" fill="#4a72d8"/><circle cx="11" cy="10.5" r="4" fill="#fff"/></svg><span>${name.replace(/</g, '&lt;')}</span>`
 })
 
 function render() {
   layer.clearLayers()
   pins.value.forEach(p => L.marker([p.lat, p.lng], { icon: pinIcon(p.name) }).addTo(layer))
-  if (pins.value.length > 1) map.fitBounds(L.latLngBounds(pins.value.map(p => [p.lat, p.lng])), { padding: [36, 36] })
-  else if (pins.value.length === 1) map.setView([pins.value[0].lat, pins.value[0].lng], 13)
+  if (pins.value.length > 1) map.fitBounds(L.latLngBounds(pins.value.map(p => [p.lat, p.lng])), { padding: [36, 36], animate: false })
+  else if (pins.value.length === 1) map.setView([pins.value[0].lat, pins.value[0].lng], 13, { animate: false })
 }
 
 onMounted(() => {
@@ -37,11 +37,12 @@ onMounted(() => {
   layer = L.layerGroup().addTo(map)
   render()
   // 레이아웃이 늦게 잡히는 경우(데이터 로드 후 표시 등) 크기 재계산
-  resize = new ResizeObserver(() => map.invalidateSize())
+  resize = new ResizeObserver(() => map?.invalidateSize({ animate: false }))
   resize.observe(el.value)
 })
 watch(pins, () => map && render())
-onBeforeUnmount(() => { resize?.disconnect(); map?.remove() })
+// 이동 중인 애니메이션을 멈춘 뒤 해제 (Leaflet _leaflet_pos 오류 방지)
+onBeforeUnmount(() => { resize?.disconnect(); map?.stop(); map?.off(); map?.remove(); map = null })
 </script>
 
 <style scoped>

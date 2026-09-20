@@ -1,43 +1,46 @@
 <template>
-  <form class="linkbar callout" @submit.prevent="submit">
-    <span class="ic" aria-hidden="true">🔗</span>
-    <div class="body">
-      <strong class="serif">SNS 링크 붙여넣기</strong>
-      <small>인스타그램·블로그·기사 링크를 넣으면 내용·대상·자격·기간을 공식 공고와 비교해드려요.</small>
-      <div class="row">
-        <input v-model="url" type="url" placeholder="https://www.instagram.com/p/..." aria-label="SNS 링크" />
-        <button :disabled="!validUrl || running">{{ running ? '분석 중…' : '가져오기' }}</button>
-      </div>
-      <div class="foot">
-        <span v-if="running" class="status"><i class="spin"></i>{{ job.message || '링크를 읽는 중' }}</span>
-        <span v-else-if="error" class="status err">{{ error }}</span>
-        <span v-else-if="notice" class="status ok">✓ {{ notice }}</span>
-        <template v-else>
-          <span class="muted">예시로 해보기</span>
-          <button v-for="s in SAMPLES" :key="s.label" type="button" class="sample" @click="url = s.url">{{ s.label }}</button>
-          <RouterLink to="/upload" class="muted up">스크린샷으로 올리기</RouterLink>
-        </template>
-      </div>
+  <div class="lb">
+    <form class="bar" @submit.prevent="submit">
+      <span class="ic"><Link2 :size="22" :stroke-width="2.2" /></span>
+      <input v-model="url" type="url" placeholder="Instagram, 블로그, YouTube 등의 링크를 붙여넣어 주세요." aria-label="SNS 링크" />
+      <button class="primary" :disabled="!validUrl || running">
+        <LoaderCircle v-if="running" :size="18" class="spin" /><Sparkles v-else :size="18" />
+        {{ running ? '분석 중…' : buttonLabel }} <ArrowRight v-if="!running" :size="18" />
+      </button>
+    </form>
+    <div class="foot" role="status">
+      <span v-if="running" class="st"><span class="steps"><i v-for="s in STAGES" :key="s" :class="{ on: STAGES.indexOf(s) <= STAGES.indexOf(job.stage) }"></i></span>{{ job.message || '링크를 읽는 중이에요' }} · 공식 공고와 비교까지 20초 정도 걸려요</span>
+      <span v-else-if="error" class="st err"><CircleAlert :size="16" />{{ error }}</span>
+      <template v-else-if="!compact">
+        <span v-if="notice" class="st ok"><CircleCheck :size="16" />{{ notice }}</span>
+        <span class="muted">예시 링크로 먼저 체험해보세요!</span>
+        <button v-for="s in SAMPLES" :key="s.label" type="button" class="sample" @click="url = s.url">
+          <span class="dot" :style="{ background: s.color }"><component :is="s.icon" :size="12" :stroke-width="2.6" color="#fff" /></span>{{ s.label }}
+        </button>
+        <RouterLink to="/upload" class="muted up"><ImagePlus :size="15" />스크린샷으로 올리기</RouterLink>
+      </template>
     </div>
-  </form>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Link2, Sparkles, ArrowRight, LoaderCircle, CircleAlert, CircleCheck, ImagePlus, Instagram, Youtube, FileText } from 'lucide-vue-next'
 import { createShare } from '../api/nexto'
 import { useJobStore } from '../stores/job'
 
 // category: 카테고리 페이지에서 넣으면 검토 화면의 저장 카테고리 기본값
-const props = defineProps({ category: String, notice: String })
+const props = defineProps({ category: String, notice: String, buttonLabel: { type: String, default: '일정 추출하기' }, query: Object, initialUrl: String, compact: Boolean })
 // 데모 모드에서 예시 데이터로 연결되는 샘플 링크
 const SAMPLES = [
-  { label: '청년 적금', url: 'https://www.instagram.com/p/NEXTO_SAMPLE_FINANCE/' },
-  { label: '청년 월세 지원', url: 'https://www.instagram.com/p/NEXTO_SAMPLE_HOUSING/' },
-  { label: '가을 축제', url: 'https://www.instagram.com/p/NEXTO_SAMPLE_FESTIVAL/' }
+  { label: '인스타그램 예시', url: 'https://www.instagram.com/p/NEXTO_SAMPLE_FESTIVAL/', color: 'var(--grad)', icon: Instagram },
+  { label: 'YouTube 예시', url: 'https://www.youtube.com/watch?v=NEXTO_SAMPLE_FINANCE', color: '#ff0033', icon: Youtube },
+  { label: '블로그 예시', url: 'https://blog.naver.com/nexto/NEXTO_SAMPLE_HOUSING', color: '#03c75a', icon: FileText }
 ]
+const STAGES = ['UNDERSTAND', 'EXTRACT', 'NORMALIZE', 'SEARCH', 'VERIFY']
 const router = useRouter(), job = useJobStore()
-const url = ref(''), running = ref(false), error = ref('')
+const url = ref(props.initialUrl ?? ''), running = ref(false), error = ref('')
 const validUrl = computed(() => /^https?:\/\/\S+\.\S+/.test(url.value.trim()))
 
 async function submit() {
@@ -49,29 +52,37 @@ async function submit() {
 watch(() => job.status, s => {
   if (!running.value) return
   if (s === 'FAILED') { running.value = false; error.value = job.error?.message ?? '다시 시도해 주세요.' }
-  else if (s === 'COMPLETED') router.push({ path: `/review/${job.result.share_id}`, query: props.category ? { category: props.category } : {} })
+  else if (s === 'COMPLETED') router.push({ path: `/review/${job.result.share_id}`, query: { ...(props.category ? { category: props.category } : {}), ...props.query } })
 })
 onUnmounted(() => job.stop?.())
 </script>
 
 <style scoped>
-.linkbar { align-items: flex-start; }
-.ic { font-size: 20px; line-height: 1.3; }
-.body { flex: 1; min-width: 0; }
-.body strong { display: block; font-size: 16px; }
-.body small { display: block; color: var(--muted); font-size: 13px; margin: 2px 0 10px; }
-.row { display: flex; gap: 8px; }
-.row input { background: #fff; }
-.row button { flex: none; padding: 0 18px; }
-.foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; min-height: 26px; }
-.muted { color: var(--faint); }
-.sample { padding: 2px 9px; border-radius: 4px; background: #fff; color: var(--ink); border: 1px solid var(--line); font-size: 12.5px; font-weight: 400; }
+.bar { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 10px; background: #fff; border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, .06); transition: box-shadow .2s, border-color .2s; }
+.bar:focus-within { border-color: #f3b4d2; box-shadow: 0 0 0 4px var(--focus), 0 10px 30px rgba(0, 0, 0, .06); }
+.ic { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: var(--grad-soft); color: var(--accent); }
+.bar input { flex: 1; min-width: 0; border: 0; padding: 12px 0; font-size: 16px; background: none; box-shadow: none; }
+.bar input:focus { outline: none; box-shadow: none; }
+.bar button { flex: none; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: 14px; font-size: 16px; }
+.foot:empty { display: none; }
+.foot { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 10px; margin-top: 18px; min-height: 36px; font-size: 13.5px; }
+.muted { color: var(--muted); }
+.sample { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px; border-radius: 999px; background: #fff; color: var(--ink); border: 1px solid var(--line-strong); font-size: 13px; font-weight: 600; }
 .sample:hover { background: var(--hover); }
-.up { margin-left: auto; }
-.status { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
-.status.err { color: var(--i-red); }
-.status.ok { color: var(--mint-ink); }
-.spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--blue); animation: spin .8s linear infinite; }
+.dot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; }
+.up { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; text-decoration: none; }
+.up:hover { color: var(--ink); }
+.st { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.st.err { color: var(--i-red); }
+.st.ok { color: var(--mint-ink); flex-basis: 100%; justify-content: center; }
+.steps { display: inline-flex; gap: 4px; }
+.steps i { width: 18px; height: 4px; border-radius: 2px; background: var(--line-strong); }
+.steps i.on { background: var(--cta); }
+.spin { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (max-width: 560px) { .row { flex-direction: column; } .row button { height: 38px; } .up { margin-left: 0; } }
+@media (max-width: 640px) {
+  .bar { flex-wrap: wrap; padding: 10px 12px; }
+  .bar input { flex-basis: calc(100% - 44px); }
+  .bar button { width: 100%; justify-content: center; height: 48px; }
+}
 </style>

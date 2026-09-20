@@ -11,6 +11,9 @@ export const CATEGORIES = [
   { key: 'CONTEST', label: '공모전', desc: '아이디어 · 디자인 · 영상', tone: 'red' },
   { key: 'OTHER', label: '기타', desc: '분류하기 애매한 것들', tone: 'gray' }
 ]
+// 지도 핀·범례 색 (카테고리 tone 기준)
+const PIN = { green: '#3f9a6b', yellow: '#d4a22a', pink: '#d9578a', blue: '#4a72d8', orange: '#e07b2e', brown: '#9a6f55', purple: '#7c5cc4', red: '#d24a4a', gray: '#6b7489' }
+export const pinColor = key => PIN[CATEGORIES.find(c => c.key === key)?.tone] ?? PIN.gray
 export const CATEGORY = Object.fromEntries(CATEGORIES.map(c => [c.key, c]))
 export const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map(c => [c.key, c.label]))
 export const GRADE = {

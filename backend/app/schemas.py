@@ -99,6 +99,13 @@ class ConfirmItemsRequest(BaseModel):
     items: list[ConfirmItem]
 
 
+# 링크 없이 직접 추가하는 일정
+class ManualItemRequest(BaseModel):
+    title: str
+    category: Category = "OTHER"
+    fields: dict = {}
+
+
 class UpdateItemRequest(BaseModel):
     title: Optional[str] = None
     category: Optional[Category] = None

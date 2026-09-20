@@ -7,11 +7,11 @@
         {{ c.label }} {{ counts[c.key] ?? 0 }}
       </button>
     </div>
-    <div v-for="g in groups" :key="g.key" class="group">
+    <div v-for="g in groups" :key="g.key" class="card group">
       <h2 class="section-title"><RouterLink :to="`/category/${g.key}`">{{ g.label }}</RouterLink><small>{{ g.items.length }}개</small></h2>
       <div class="table">
         <RouterLink v-for="i in g.items" :key="i.id" :to="`/items/${i.id}`" class="tr">
-          <span class="name serif">{{ i.title }}</span>
+          <span class="name">{{ i.title }}</span>
           <span class="muted">{{ periodLabel(i.start, i.end) }}</span>
           <span class="muted">{{ i.place?.name ?? '' }}</span>
           <span><i class="tag" :class="`tone-${GRADE[i.grade]?.tone ?? 'gray'}`">{{ GRADE[i.grade]?.label ?? '-' }}</i></span>
@@ -36,14 +36,15 @@ onMounted(async () => { items.value = (await getItems()).map(fromItem); loaded.v
 </script>
 
 <style scoped>
-.page-title small { font-family: var(--sans); font-size: 15px; font-weight: 400; color: var(--faint); margin-left: 6px; }
+.page-title small { font-size: 15px; font-weight: 500; color: var(--faint); margin-left: 6px; }
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-.filters .tag { border: 0; padding: 3px 9px; font-size: 13px; cursor: pointer; }
+.filters .tag { border: 0; padding: 5px 12px; font-size: 13px; cursor: pointer; }
 .filters .tag.off { opacity: .45; }
-.group { margin-top: 28px; }
+.group { margin: 16px 0 0; padding: 18px 22px; }
 .group .section-title { font-size: 17px; }
 .group .section-title a { text-decoration: none; }
 .table { border-top: 1px solid var(--line); }
+.tr:last-child { border-bottom: 0; }
 .tr { display: grid; grid-template-columns: 2fr 1fr 1fr .8fr; gap: 12px; align-items: center; padding: 9px 4px; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 14px; }
 .tr:hover { background: var(--soft); }
 .name { font-weight: 600; }

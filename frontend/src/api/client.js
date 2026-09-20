@@ -11,7 +11,7 @@ client.interceptors.response.use(res => res.data.data, err => {
   const error = err.response?.data?.error ?? { code: 'NETWORK', message: '서버에 연결할 수 없어요.', retryable: true }
   if (err.response?.status === 401 && !err.config.url.startsWith('/auth/login')) {
     localStorage.removeItem('nexto_token')
-    if (location.pathname !== '/' && location.pathname !== '/login') location.assign('/login?expired=1')
+    if (location.pathname !== '/') location.assign('/?expired=1#login')
   }
   return Promise.reject(error)
 })

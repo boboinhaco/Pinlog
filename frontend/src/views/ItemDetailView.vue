@@ -20,7 +20,7 @@
             </select>
           </label>
           <button class="ghost" @click="remove">삭제</button>
-          <span v-if="saved" class="ok">✓ 저장됨</span>
+          <span v-if="saved" class="ok"><Check :size="15" />저장됨</span>
         </div>
       </div>
     </div>
@@ -72,6 +72,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getItem, patchItem, deleteItem } from '../api/nexto'
 import { longDate } from '../utils/events'
+import { Check } from 'lucide-vue-next'
 import { CATEGORIES, CATEGORY_LABEL, GRADE, display, compareRows } from '../utils/labels'
 import CategoryArt from '../components/CategoryArt.vue'
 import PlaceMap from '../components/PlaceMap.vue'
@@ -117,7 +118,7 @@ async function remove() {
 .move { display: flex; align-items: center; gap: 6px; color: var(--muted); }
 .move select { width: auto; padding: 4px 8px; font-size: 13px; }
 .acts .ghost { padding: 4px 10px; font-size: 13px; }
-.ok { color: var(--mint-ink); }
+.ok { display: inline-flex; align-items: center; gap: 4px; color: var(--mint-ink); }
 .muted { color: var(--muted); font-size: 14px; margin: 0; }
 .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; align-items: start; }
 .side { display: grid; gap: 14px; }

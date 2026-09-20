@@ -31,7 +31,7 @@ async def geocode(name: str | None, address: str | None) -> tuple[float, float] 
     if not address and (not name or any(v in name for v in VAGUE)): return None
     for q in [q for q in (address, f"{name} {address or ''}".strip(), name) if q]:
         try:
-            async with httpx.AsyncClient(timeout=8, headers={"User-Agent": "NEXTO/0.3 (demo; https://github.com/boboinhaco/NEXTO_Wicked)"}) as client:
+            async with httpx.AsyncClient(timeout=8, headers={"User-Agent": "Pinlog/0.3 (demo; https://github.com/boboinhaco/NEXTO_Wicked)"}) as client:
                 res = await client.get("https://nominatim.openstreetmap.org/search", params={"q": q, "format": "json", "limit": 1, "countrycodes": "kr"})
             hits = res.json() if res.status_code == 200 else []
             await asyncio.sleep(1)

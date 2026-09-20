@@ -1,114 +1,119 @@
 <template>
-  <section v-if="result && form" class="review">
-    <RouterLink to="/home" class="back">‹ 홈으로</RouterLink>
+  <div v-if="result && form" class="review">
+    <PageHero align="left" back="/home" title="링크 분석 결과" sub="SNS 링크를 분석해 일정과 장소를 정리하고, 공식 공고와 비교했어요."
+              doodle="좋아하는 콘텐츠가<br>새로운 일정이 되는 순간!" />
+    <LinkBar :initial-url="result.original_url ?? ''" button-label="다른 링크 분석하기" compact class="lb" />
 
-    <!-- 제목 -->
-    <div class="head">
-      <div class="chips">
-        <span class="tag" :class="`tone-${CATEGORY[ex.category]?.tone ?? 'gray'}`">AI 분류 · {{ CATEGORY_LABEL[ex.category] ?? '기타' }}</span>
-        <span class="tag" :class="`tone-${GRADE[grade].tone}`">{{ GRADE[grade].label }}</span>
-        <span v-if="ex.demo" class="tag demo">예시 데이터</span>
-      </div>
-      <input v-model="form.title" class="title-input" aria-label="제목" />
-      <p class="lead">내용을 확인하고 <b>확인하고 일정에 추가</b>를 누르면 캘린더에 들어가요.</p>
-    </div>
+    <div class="cols">
+      <!-- 원본 콘텐츠 -->
+      <section class="card src-card">
+        <div class="hd">
+          <h2 class="section-title"><i class="sico" :style="{ background: source.color }"></i>원본 콘텐츠</h2>
+          <a v-if="result.original_url" :href="result.original_url" target="_blank" rel="noopener" class="ghost-btn">↗ 새 창에서 보기</a>
+        </div>
+        <div class="post">
+          <div class="who"><span class="av">{{ post.author.slice(0, 1).toUpperCase() }}</span><b>{{ post.author }}</b><small>{{ post.when }}</small></div>
+          <div v-if="postImage && imgOk" class="pimg"><img :src="postImage" alt="원본 게시물 이미지" referrerpolicy="no-referrer" @error="imgOk = false" /></div>
+          <div v-else class="pimg art"><CategoryArt :kind="category" fill /></div>
+          <p class="cap"><b>{{ post.author }}</b>
+            <template v-for="(t, i) in captionParts" :key="i"><span v-if="t.tag" class="ht">{{ t.text }}</span><template v-else>{{ t.text }}</template></template>
+          </p>
+          <p v-if="ex.demo" class="demo">예시 데이터로 만든 결과예요.</p>
+        </div>
+      </section>
 
-    <p v-if="ex.notice" class="notice">
-      <span>ⓘ</span>{{ ex.notice }}
-      <RouterLink :to="{ path: '/upload', query: { url: result.original_url } }">스크린샷을 함께 올려 다시 분석하기 →</RouterLink>
-    </p>
+      <!-- 추출된 정보 -->
+      <section class="card info">
+        <div class="hd">
+          <h2 class="section-title"><Sparkles :size="22" />추출된 정보</h2>
+          <small class="muted">AI가 콘텐츠를 분석하여 추출한 정보예요.</small>
+        </div>
+        <p v-if="ex.notice" class="notice"><Info :size="16" />{{ ex.notice }} <RouterLink :to="{ path: '/upload', query: { url: result.original_url } }">스크린샷 올리기 →</RouterLink></p>
 
-    <!-- SNS 요약 vs 공식 요약 -->
-    <div class="pair">
-      <div class="card">
-        <h2 class="panel-title">이 링크가 알려주는 내용</h2>
-        <div class="sns">
-          <img v-if="ex.image_url && imgOk" :src="ex.image_url" alt="" referrerpolicy="no-referrer" @error="imgOk = false" />
-          <div>
-            <p>{{ ex.summary || '요약할 수 있는 내용이 없어요.' }}</p>
-            <a v-if="result.original_url" :href="result.original_url" target="_blank" rel="noopener" class="link">원본 게시물 열기 ↗</a>
+        <input v-model="form.title" class="title-input" aria-label="제목" />
+        <div class="cats" role="radiogroup" aria-label="저장할 카테고리">
+          <button v-for="c in CATEGORIES" :key="c.key" type="button" role="radio" :aria-checked="category === c.key" class="tag"
+                  :class="[`tone-${c.tone}`, { on: category === c.key }]" @click="category = c.key">{{ c.label }}</button>
+        </div>
+
+        <!-- 일정 -->
+        <div class="box">
+          <div class="bh"><b><CalendarDays :size="17" />{{ dateKind === 'event_period' ? '행사 일정' : '신청 기간' }}</b><span class="tag" :class="`tone-${conf(dateKind).tone}`">{{ conf(dateKind).label }}</span></div>
+          <div v-if="!multi" class="dates">
+            <label class="dt"><small>시작일</small><input v-model="form.start" type="date" @change="form.touched = true" /></label>
+            <span class="arrow">›</span>
+            <label class="dt"><small>{{ dateKind === 'event_period' ? '종료일' : '마감일' }}</small><input v-model="form.end" type="date" :min="form.start || undefined" @change="form.touched = true" /></label>
+            <span v-if="duration" class="dur">{{ duration }}</span>
+          </div>
+          <div v-else class="dates ro">
+            <span class="dt"><small>시작일</small><b>{{ longDate(range.start) }}</b></span><span class="arrow">›</span>
+            <span class="dt"><small>종료일</small><b>{{ longDate(range.end) }}</b></span>
+            <span v-if="duration" class="dur">{{ duration }}</span>
+          </div>
+          <p class="note">{{ dateSourceNote }}</p>
+        </div>
+
+        <!-- 장소 -->
+        <div v-if="places.length" class="box">
+          <div class="bh"><b><MapPin :size="17" />추출된 장소 {{ places.length }}개</b><span class="tag" :class="`tone-${conf('location').tone}`">{{ conf('location').label }}</span></div>
+          <div class="pl">
+            <div class="mini-map"><PlaceMap :places="places.filter(p => p.lat != null)" height="100%" /></div>
+            <ol>
+              <li v-for="(p, n) in places" :key="p.name"><i>{{ n + 1 }}</i><span><b>{{ p.name }}</b><small>{{ p.address || p.event || '' }}</small></span></li>
+            </ol>
           </div>
         </div>
-      </div>
-      <div class="card official-card" :class="{ none: !primary }">
-        <h2 class="panel-title">공식 공고에서는</h2>
-        <template v-if="primary">
-          <p>{{ ver.official_summary }}</p>
-          <a :href="primary.url" target="_blank" rel="noopener" class="src">
-            <b>{{ primary.title || primary.url }}</b>
-            <small>{{ DOMAIN[primary.domain_type] ?? '출처' }} · {{ host(primary.url) }} ↗</small>
-          </a>
-        </template>
-        <p v-else class="muted">같은 내용을 다루는 공식 공고를 찾지 못했어요. SNS 내용 기준으로 저장되니, 중요한 조건은 직접 한 번 더 확인해 주세요.</p>
-      </div>
+
+        <!-- 여러 일정: 고르고 날짜 고치기 -->
+        <div v-if="multi" class="box">
+          <div class="bh"><b><ListChecks :size="17" />추출된 일정 {{ form.events.length }}개</b><small class="muted">{{ picked.length }}개 선택</small></div>
+          <label v-for="(e, i) in form.events" :key="i" class="ev" :class="{ off: !e.on }">
+            <input v-model="e.on" type="checkbox" />
+            <input v-model="e.title" class="ev-title" aria-label="일정 이름" />
+            <span class="ev-dates">
+              <input v-model="e.start" type="date" aria-label="시작일" @change="e.touched = true" />~<input v-model="e.end" type="date" aria-label="종료일" @change="e.touched = true" />
+            </span>
+            <b v-if="e.ambiguous && !e.touched" class="tag tone-orange">날짜 확인</b>
+          </label>
+        </div>
+
+        <!-- 타임라인 -->
+        <div v-if="timeline.length > 1" class="box">
+          <div class="bh"><b><GitCommitHorizontal :size="17" />예상 일정 타임라인</b><small class="muted">저장한 뒤 내 일정에서 더 자세히 고칠 수 있어요.</small></div>
+          <div class="tl"><div v-for="(t, i) in timeline" :key="i" class="node"><small>{{ t.date }}</small><i></i><b>{{ t.label }}</b><small>{{ t.sub }}</small></div></div>
+        </div>
+
+        <p v-if="expired" class="warn red"><TriangleAlert :size="16" />이미 {{ expired }} 마감(종료)된 일정이에요. 기록용으로는 저장할 수 있어요.</p>
+        <label v-if="needsDateCheck" class="warn check"><input v-model="dateChecked" type="checkbox" /> 날짜가 확실하지 않아요(연도·말일 추정). 날짜를 확인했어요.</label>
+        <p v-if="error" class="err">{{ error.message }}</p>
+
+        <div class="acts">
+          <button class="ghost" :disabled="saving || !canSave" @click="save('/calendar')"><CalendarPlus :size="18" />일정표에 추가하기</button>
+          <button :disabled="saving || !canSave" @click="save(places.length ? '/map' : '/home')"><component :is="saving ? LoaderCircle : places.length ? MapPinned : Check" :size="18" :class="{ spin: saving }" />{{ saving ? '저장 중…' : places.length ? '지도에 저장하기' : '확인하고 저장하기' }}</button>
+        </div>
+      </section>
     </div>
 
-    <!-- 항목별 비교 -->
-    <div class="card">
-      <h2 class="panel-title">항목별 확인 <small>{{ rows.length }}개 항목</small></h2>
+    <!-- 공식 공고와 비교 -->
+    <section class="card cmp">
+      <div class="hd">
+        <h2 class="section-title">공식 공고와 비교 <span class="tag" :class="`tone-${GRADE[grade].tone}`">{{ GRADE[grade].label }}</span></h2>
+      </div>
+      <div class="sums">
+        <div><small>이 링크가 알려주는 내용</small><p>{{ ex.summary || '요약할 수 있는 내용이 없어요.' }}</p></div>
+        <div class="off">
+          <small>공식 공고에서는</small>
+          <template v-if="primary">
+            <p>{{ ver.official_summary }}</p>
+            <a :href="primary.url" target="_blank" rel="noopener" class="srcl"><b>{{ primary.title || primary.url }}</b><span>{{ DOMAIN[primary.domain_type] ?? '출처' }} · {{ host(primary.url) }} ↗</span></a>
+          </template>
+          <p v-else class="muted">같은 내용을 다루는 공식 공고를 찾지 못했어요. 중요한 조건은 직접 한 번 더 확인해 주세요.</p>
+        </div>
+      </div>
       <CompareRows v-if="rows.length" :rows="rows" />
-      <p v-else class="empty">비교할 항목을 찾지 못했어요.</p>
-    </div>
-
-    <div v-if="ex.key_points?.length" class="card">
-      <h2 class="panel-title">그 밖의 정보 요약</h2>
-      <ul class="points"><li v-for="p in ex.key_points" :key="p">{{ p }}</li></ul>
-    </div>
-
-    <!-- 저장할 카테고리 (홈의 9개 블록) -->
-    <div class="card">
-      <h2 class="panel-title">저장할 카테고리</h2>
-      <div class="cats" role="radiogroup" aria-label="저장할 카테고리">
-        <button v-for="c in CATEGORIES" :key="c.key" type="button" role="radio" :aria-checked="category === c.key"
-                class="cat" :class="{ on: category === c.key }" @click="category = c.key">
-          <CategoryArt :kind="c.key" fill /><span>{{ c.label }}</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 캘린더에 넣을 일정 -->
-    <div class="card">
-      <h2 class="panel-title">캘린더에 넣을 일정 <small v-if="multi">{{ picked.length }} / {{ form.events.length }}건 선택</small></h2>
-      <template v-if="multi">
-        <label v-for="(e, i) in form.events" :key="i" class="ev-row" :class="{ off: !e.on }">
-          <input v-model="e.on" type="checkbox" />
-          <div class="ev-main">
-            <input v-model="e.title" class="ev-title" />
-            <small v-if="e.location?.name">📍 {{ e.location.name }}</small>
-          </div>
-          <div class="dates">
-            <input v-model="e.start" type="date" aria-label="시작일" @change="e.touched = true" />
-            <span>~</span>
-            <input v-model="e.end" type="date" aria-label="종료일" @change="e.touched = true" />
-          </div>
-          <b v-if="e.ambiguous && !e.touched" class="warn-dot" title="날짜가 확실하지 않아요">날짜 확인</b>
-        </label>
-      </template>
-      <template v-else>
-        <div class="date-form">
-          <span class="date-label">{{ dateKind === 'event_period' ? '행사 기간' : '신청 기간 · 마감' }}</span>
-          <div class="dates">
-            <input v-model="form.start" type="date" aria-label="시작일" @change="form.touched = true" />
-            <span>~</span>
-            <input v-model="form.end" type="date" aria-label="마감일" @change="form.touched = true" />
-          </div>
-          <small class="muted">{{ dateSourceNote }}</small>
-        </div>
-        <p v-if="!form.start && !form.end" class="muted">날짜가 없으면 캘린더 대신 '저장됨'에만 들어가요. 알고 있는 날짜가 있으면 입력해 주세요.</p>
-      </template>
-      <p v-if="expired" class="expired">⚠ 이미 {{ expired }} 마감(종료)된 일정이에요. 그래도 기록용으로 저장할 수 있어요.</p>
-      <label v-if="needsDateCheck" class="confirm-date">
-        <input v-model="dateChecked" type="checkbox" />
-        날짜가 확실하지 않아요(연도·말일 추정). 날짜를 확인했어요.
-      </label>
-    </div>
-
-    <div class="actions">
-      <p v-if="error" class="err">{{ error.message }}</p>
-      <RouterLink to="/home" class="cancel">취소</RouterLink>
-      <button :disabled="saving || !canSave" @click="save">{{ saving ? '저장 중…' : `확인하고 일정에 추가${multi ? ` (${picked.length}건)` : ''}` }}</button>
-    </div>
-  </section>
+      <div v-if="ex.key_points?.length" class="kp"><b>그 밖의 정보</b><ul><li v-for="p in ex.key_points" :key="p">{{ p }}</li></ul></div>
+    </section>
+  </div>
   <p v-else-if="loadError" class="empty">{{ loadError }}</p>
 </template>
 
@@ -116,12 +121,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getShareResult, confirmShareItems } from '../api/nexto'
-import { CATEGORIES, CATEGORY, CATEGORY_LABEL, GRADE, compareRows } from '../utils/labels'
+import { CATEGORIES, CATEGORY, GRADE, compareRows } from '../utils/labels'
+import { longDate, periodLabel, ymd } from '../utils/events'
+import { Sparkles, Info, CalendarDays, MapPin, MapPinned, ListChecks, GitCommitHorizontal, TriangleAlert, CalendarPlus, Check, LoaderCircle } from 'lucide-vue-next'
+import { sourceOf } from '../utils/source'
+import PageHero from '../components/PageHero.vue'
+import LinkBar from '../components/LinkBar.vue'
 import CompareRows from '../components/CompareRows.vue'
 import CategoryArt from '../components/CategoryArt.vue'
+import PlaceMap from '../components/PlaceMap.vue'
 
 const DOMAIN = { OFFICIAL_GOV: '정부·지자체 공식', OFFICIAL_PUBLIC: '공공기관 공식', OFFICIAL_FINANCE: '금융기관 공식', OFFICIAL_ORGANIZER: '주최측 공식', SECONDARY: '2차 자료', UNKNOWN: '출처' }
-const LAST_ITEMS = 'nexto_last_items'
+// 필드 확인 상태 → 신뢰도 배지
+const CONF = { VERIFIED: { label: '높은 신뢰도', tone: 'green' }, REFINED: { label: '높은 신뢰도', tone: 'green' }, ADDED: { label: '공식 정보 추가', tone: 'purple' },
+               CONFLICT: { label: '확인 필요', tone: 'red' }, AMBIGUOUS: { label: '보통 신뢰도', tone: 'orange' }, UNVERIFIED: { label: '공식 미확인', tone: 'gray' } }
 const route = useRoute(), router = useRouter()
 const category = ref('OTHER'), result = ref(null), form = ref(null), saving = ref(false), error = ref(null), loadError = ref(''), imgOk = ref(true), dateChecked = ref(false)
 
@@ -135,18 +148,60 @@ const multi = computed(() => form.value.events.length > 0)
 const picked = computed(() => form.value.events.filter(e => e.on))
 const dateKind = computed(() => ex.value.category === 'EVENT' || (ex.value.event_period?.start && !ex.value.apply_period?.end) ? 'event_period' : 'apply_period')
 const host = u => { try { return new URL(u).hostname.replace(/^www\./, '') } catch { return u } }
+const conf = field => CONF[(ver.value.fields ?? []).find(f => f.field === field)?.status ?? 'UNVERIFIED']
+
+// 원본 게시물: 인스타 미리보기 문구는 "작성자 - 날짜: "캡션"" 형식
+const source = computed(() => sourceOf(result.value.original_url))
+const post = computed(() => {
+  const sp = result.value.source_post, desc = sp?.description ?? ''
+  const m = desc.trim().match(/^(.+?) - (.+?): "([\s\S]*)"\.?$/)
+  const created = result.value.created_at ? new Date(result.value.created_at) : null
+  return {
+    author: m?.[1] ?? (sp?.is_sns ? source.value.label : host(result.value.original_url ?? '') || source.value.label),
+    when: m?.[2] ?? (created ? `${created.getMonth() + 1}월 ${created.getDate()}일 분석` : ''),
+    caption: m?.[3] ?? ([sp?.title, desc].filter(Boolean).join('\n\n') || ex.value.summary || '')
+  }
+})
+const postImage = computed(() => result.value.source_post?.image_url ?? ex.value.image_url)
+const captionParts = computed(() => (' ' + post.value.caption).split(/(#[^\s#]+)/).map(t => ({ text: t, tag: t.startsWith('#') })))
+
+// 장소: 여러 일정이면 선택한 일정의 장소들, 아니면 대표 장소
+const places = computed(() => {
+  const list = multi.value
+    ? picked.value.filter(e => e.location?.name).map(e => ({ ...e.location, event: e.title }))
+    : [ex.value.location ?? (official.value.location?.name ? official.value.location : null)].filter(l => l?.name)
+  return [...new Map(list.map(p => [p.name, p])).values()]
+})
+
+// 전체 기간·기간 길이
+const range = computed(() => {
+  const s = picked.value.map(e => e.start).filter(Boolean).sort(), e = picked.value.map(x => x.end || x.start).filter(Boolean).sort()
+  return { start: s[0], end: e.at(-1) }
+})
+const duration = computed(() => {
+  const { start, end } = multi.value ? range.value : { start: form.value.start, end: form.value.end }
+  if (!start || !end) return ''
+  const n = Math.round((new Date(end + 'T00:00') - new Date(start + 'T00:00')) / 86400000)
+  if (n < 0) return ''
+  const days = n === 0 ? '하루' : `${n + 1}일간`
+  return multi.value ? `${picked.value.length}개 일정 · ${days}` : days
+})
+const WD = ['일', '월', '화', '수', '목', '금', '토']
+const short = s => { const d = new Date(s + 'T00:00'); return `${d.getMonth() + 1}.${d.getDate()} (${WD[d.getDay()]})` }
+const timeline = computed(() => multi.value
+  ? [...picked.value].filter(e => e.start).sort((a, b) => a.start.localeCompare(b.start)).map(e => ({ date: short(e.start), label: e.title, sub: e.location?.name ?? periodLabel(e.start, e.end) }))
+  : [form.value.start && { date: short(form.value.start), label: dateKind.value === 'event_period' ? '시작' : '신청 시작', sub: '' },
+     form.value.end && form.value.end !== form.value.start && { date: short(form.value.end), label: dateKind.value === 'event_period' ? '종료' : '마감', sub: '' }].filter(Boolean))
 
 // 날짜 기본값: 공식 공고 값이 있으면 공식 기준, 없으면 SNS 기준
 const officialPeriod = computed(() => official.value[dateKind.value]?.end || official.value[dateKind.value]?.start ? official.value[dateKind.value] : null)
-const dateSourceNote = computed(() => form.value.touched ? '직접 입력한 날짜로 저장돼요.' : officialPeriod.value ? '공식 공고 기준 날짜로 채웠어요.' : 'SNS 내용 기준 날짜예요.')
-const needsDateCheck = computed(() => multi.value
-  ? picked.value.some(e => e.ambiguous && !e.touched)
-  : form.value.ambiguous && !form.value.touched && (form.value.start || form.value.end))
-// 마감일(없으면 시작일)이 오늘보다 이전이면 경고
+const dateSourceNote = computed(() => multi.value ? '아래 목록에서 일정별 날짜를 고칠 수 있어요.' : form.value.touched ? '직접 입력한 날짜로 저장돼요.' : officialPeriod.value ? '공식 공고 기준 날짜로 채웠어요.' : (form.value.start || form.value.end) ? 'SNS 내용 기준 날짜예요.' : '날짜가 없으면 캘린더 대신 저장 목록에만 들어가요.')
+const needsDateCheck = computed(() => multi.value ? picked.value.some(e => e.ambiguous && !e.touched) : form.value.ambiguous && !form.value.touched && (form.value.start || form.value.end))
+// 마감일(없으면 시작일)이 모두 오늘보다 이전이면 경고
 const expired = computed(() => {
-  const ends = multi.value ? picked.value.map(e => e.end || e.start) : [form.value.end || form.value.start]
-  const today = new Date().toISOString().slice(0, 10), past = ends.filter(d => d && d < today).sort()
-  if (!past.length || past.length < ends.filter(Boolean).length) return null
+  const ends = (multi.value ? picked.value.map(e => e.end || e.start) : [form.value.end || form.value.start]).filter(Boolean)
+  const today = ymd(new Date()), past = ends.filter(d => d < today).sort()
+  if (!past.length || past.length < ends.length) return null
   const [, m, d] = past.at(-1).split('-'); return `${+m}월 ${+d}일에`
 })
 const canSave = computed(() => (multi.value ? picked.value.length > 0 : true) && (!needsDateCheck.value || dateChecked.value))
@@ -164,13 +219,12 @@ onMounted(async () => {
   }
 })
 
-// 공식 값 우선으로 저장할 필드 구성
-const pick = (key) => {
-  const o = official.value[key], s = ex.value[key]
-  return (Array.isArray(o) ? o.length : o) ? o : s
-}
+// 공식 값 우선으로 저장할 필드 구성 (장소는 좌표 있는 SNS 값 우선)
+const pick = key => { const o = official.value[key], s = ex.value[key]; return (Array.isArray(o) ? o.length : o) ? o : s }
 function buildItems() {
-  const x = ex.value, common = { summary: x.summary, official_summary: ver.value.official_summary ?? null, key_points: x.key_points, image_url: x.image_url, organization: x.organization }
+  const x = ex.value
+  const common = { summary: x.summary, official_summary: ver.value.official_summary ?? null, key_points: x.key_points, image_url: postImage.value ?? x.image_url,
+                   organization: x.organization, ...(route.query.liked === '1' ? { liked: true } : {}) }
   if (multi.value) {
     return picked.value.map(e => ({
       title: e.title, category: category.value, user_overrides: e.touched || dateChecked.value ? ['event_period'] : [],
@@ -181,79 +235,112 @@ function buildItems() {
   return [{
     title: f.title, category: category.value, user_overrides: f.touched || dateChecked.value ? [dateKind.value] : [],
     fields: { ...common, target: pick('target'), eligibility: pick('eligibility'), benefit_amount: pick('benefit_amount'), requirements: pick('requirements'),
-              location: pick('location'), [dateKind.value]: f.start || f.end ? { start: f.start || null, end: f.end || null, status: 'exact' } : null }
+              location: x.location?.lat != null ? x.location : pick('location'),
+              [dateKind.value]: f.start || f.end ? { start: f.start || f.end, end: f.end || f.start, status: 'exact' } : null }
   }]
 }
 
-async function save() {
+async function save(to) {
   saving.value = true; error.value = null
   try {
     const saved = await confirmShareItems(route.params.shareId, buildItems())
-    try { localStorage.setItem(LAST_ITEMS, JSON.stringify(saved.map(i => i.item_id))) } catch { /* 저장 불가 환경 무시 */ }
     const first = saved.map(i => i.fields.event_period?.start ?? i.fields.apply_period?.start ?? i.fields.apply_period?.end).filter(Boolean).sort()[0]
-    router.push({ path: '/home', query: { added: saved.length, ...(first ? { month: first.slice(0, 7) } : {}) } })
+    router.push({ path: to, query: to === '/calendar' && first ? { month: first.slice(0, 7) } : to === '/home' ? { added: saved.length } : {} })
   } catch (e) { error.value = e } finally { saving.value = false }
 }
 </script>
 
 <style scoped>
-.review { display: grid; gap: 14px; padding: 16px 0 90px; }
-.review > .card { margin: 0; }
-.back { color: var(--faint); text-decoration: none; font-size: 14px; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag.demo { background: #fff; color: var(--muted); border: 1px dashed var(--line); }
-.title-input { margin: 10px 0 6px; padding: 2px 0; border: 0; border-radius: 0; background: none; font-family: var(--serif); font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; }
-.title-input:hover { background: var(--soft); }
-.title-input:focus { outline: none; background: var(--soft); }
-.lead { margin: 0; color: var(--muted); }
-.notice { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 0; padding: 12px 16px; border-radius: 6px; background: var(--t-yellow); color: #6f5316; font-size: 14px; }
-.notice span { font-weight: 700; }
-.notice a { color: #9a6a12; font-weight: 600; margin-left: auto; }
-.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.pair .card { margin: 0; }
-.pair p { margin: 0 0 12px; line-height: 1.7; }
-.sns { display: flex; gap: 16px; align-items: flex-start; }
-.sns img { flex: none; width: 104px; height: 104px; object-fit: cover; border-radius: 6px; }
-.link { color: var(--blue); font-size: 14px; }
-.official-card { background: var(--soft); border-color: transparent; }
-.src { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; text-decoration: none; }
-.src:hover { background: var(--hover); }
-.src b { display: block; font-size: 14px; margin-bottom: 2px; }
-.src small { color: var(--muted); }
-.muted { color: var(--muted); font-size: 14px; line-height: 1.6; }
-.points { margin: 0; padding-left: 20px; line-height: 1.9; }
-.cats { display: grid; grid-template-columns: repeat(9, 1fr); gap: 8px; }
-.cat { display: grid; padding: 0; overflow: hidden; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; font-weight: 400; text-align: center; }
-.cat :deep(svg) { width: 100%; aspect-ratio: 5 / 3; display: block; }
-.cat span { padding: 5px 2px; font-family: var(--serif); font-size: 12.5px; white-space: nowrap; }
-.cat:hover { background: var(--soft); }
-.cat.on { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
-.cat.on span { color: var(--blue); font-weight: 700; }
-.ev-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
-.ev-row:last-of-type { border-bottom: 0; }
-.ev-row.off { opacity: .45; }
-.ev-row input[type=checkbox], .confirm-date input { width: 18px; height: 18px; accent-color: var(--blue); }
-.ev-main small { color: var(--muted); }
-.ev-title { padding: 2px 0; border: 0; background: none; font-family: var(--serif); font-weight: 700; font-size: 15px; cursor: text; }
-.dates { display: flex; align-items: center; gap: 8px; }
-.dates input { width: 150px; padding: 6px 8px; }
-.warn-dot { font-size: 12px; font-weight: 500; color: #9a520e; background: var(--t-orange); padding: 2px 8px; border-radius: 4px; }
-.date-form { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
-.date-label { font-family: var(--serif); font-weight: 700; }
-.expired { margin: 14px 0 0; padding: 10px 14px; border-radius: 6px; background: var(--t-red); color: #a8322d; font-size: 14px; }
-.confirm-date { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 14px; border-radius: 6px; background: var(--t-yellow); color: #6f5316; font-size: 14px; cursor: pointer; }
-.actions { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; display: flex; justify-content: flex-end; align-items: center; gap: 12px;
-  padding: 12px max(48px, calc((100vw - 1040px) / 2 + 48px)); padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba(255, 255, 255, .96); backdrop-filter: blur(6px); border-top: 1px solid var(--line); }
-.actions button { height: 40px; padding: 0 20px; }
-.cancel { color: var(--muted); text-decoration: none; padding: 0 8px; }
-.err { margin: 0 auto 0 0; color: var(--i-red); font-size: 14px; }
-@media (max-width: 900px) { .cats { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 760px) {
-  .pair { grid-template-columns: 1fr; }
-  .ev-row { grid-template-columns: auto 1fr; }
-  .ev-row .dates, .ev-row .warn-dot { grid-column: 2; }
-  .dates input { width: 100%; min-width: 0; }
-  .actions { padding-inline: 16px; }
-  .actions button { flex: 1; }
+.review { display: grid; gap: 16px; }
+.lb { max-width: 980px; width: 100%; margin: 0 auto; }
+.cols { display: grid; grid-template-columns: .85fr 1.15fr; gap: 18px; align-items: start; }
+.card { margin: 0; padding: 20px 22px; }
+.hd { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+.hd .section-title { margin: 0; }
+.muted { color: var(--muted); font-size: 13px; }
+.sico { display: inline-block; width: 26px; height: 26px; border-radius: 8px; }
+.ghost-btn { padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; text-decoration: none; color: var(--accent-deep); }
+.ghost-btn:hover { background: var(--hover); }
+.post { border-top: 1px solid var(--line); padding-top: 12px; }
+.who { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.av { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--cta); color: #fff; font-weight: 700; }
+.who small { color: var(--faint); font-size: 12.5px; }
+.pimg { border-radius: 12px; overflow: hidden; background: var(--soft); }
+.pimg img { width: 100%; max-height: 420px; object-fit: cover; display: block; }
+.pimg.art { aspect-ratio: 4 / 3; }
+.pimg.art :deep(svg) { width: 100%; height: 100%; display: block; }
+.cap { margin: 12px 0 0; font-size: 14px; line-height: 1.7; white-space: pre-line; max-height: 260px; overflow-y: auto; }
+.cap b { margin-right: 4px; }
+.ht { color: var(--accent-deep); }
+.demo { margin: 10px 0 0; font-size: 12.5px; color: var(--faint); }
+.notice { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 10px 14px; border-radius: 10px; background: var(--t-yellow); color: #6f5316; font-size: 13.5px; }
+.notice a { color: #9a6a12; font-weight: 600; }
+.title-input { padding: 4px 8px; margin-left: -8px; border: 0; border-radius: 8px; background: none; font-size: 22px; font-weight: 800; }
+.title-input:hover, .title-input:focus { background: var(--soft); outline: none; }
+.cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 14px; }
+.cats .tag { border: 1.5px solid transparent; cursor: pointer; padding: 3px 11px; font-size: 12.5px; opacity: .75; }
+.cats .tag.on { opacity: 1; border-color: currentColor; font-weight: 700; }
+.box { padding: 14px 16px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 14px; background: #fbfcff; }
+.bh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-bottom: 10px; }
+.bh b { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; }
+.bh .lucide { color: var(--accent); }
+.bh .muted { margin-left: auto; }
+.dates { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.dt { flex: 1; min-width: 150px; display: grid; gap: 2px; padding: 8px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--line); }
+.dt small { font-size: 12px; color: var(--muted); }
+.dt input { border: 0; padding: 0; font-size: 15px; font-weight: 700; background: none; }
+.dt input:focus { outline: none; }
+.dt b { font-size: 15px; }
+.arrow { color: var(--faint); font-size: 20px; }
+.dur { padding: 10px 18px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-deep); font-weight: 700; }
+.note { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
+.pl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini-map { height: 190px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+ol { margin: 0; padding: 0; list-style: none; display: grid; align-content: start; gap: 6px; max-height: 190px; overflow-y: auto; }
+ol li { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+ol li:last-child { border-bottom: 0; }
+ol i { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-style: normal; font-size: 12px; font-weight: 700; }
+ol span { display: grid; min-width: 0; }
+ol b { font-size: 14px; }
+ol small { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.ev:last-of-type { border-bottom: 0; }
+.ev.off { opacity: .45; }
+.ev input[type=checkbox], .check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.ev-title { border: 0; padding: 2px 0; background: none; font-weight: 700; font-size: 14px; }
+.ev-dates { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
+.ev-dates input { width: 136px; padding: 4px 6px; font-size: 13px; }
+.tl { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(90px, 1fr); overflow-x: auto; padding: 4px 0; }
+.tl::before { content: ''; position: absolute; left: 40px; right: 40px; top: 32px; border-top: 2px solid var(--line-strong); }
+.node { position: relative; display: grid; justify-items: center; gap: 4px; text-align: center; padding: 0 4px; }
+.node i { width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--accent); }
+.node b { font-size: 12.5px; line-height: 1.3; }
+.node small { font-size: 11.5px; color: var(--muted); }
+.warn { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; }
+.warn.red { background: var(--t-red); color: #a8322d; }
+.warn.check { background: var(--t-yellow); color: #6f5316; cursor: pointer; }
+.err { margin: 0 0 10px; color: var(--i-red); font-size: 14px; }
+.acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.acts button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 14px; font-size: 15.5px; }
+.acts .spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.acts button:not(.ghost) { background: var(--cta); box-shadow: 0 6px 16px rgba(74, 114, 216, .25); }
+.acts .ghost { color: var(--accent-deep); border-color: var(--line-strong); }
+.cmp .section-title .tag { margin-left: 6px; }
+.sums { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.sums > div { padding: 14px 16px; border-radius: 12px; background: var(--soft); }
+.sums small { font-size: 12px; font-weight: 700; color: var(--muted); }
+.sums p { margin: 4px 0 0; font-size: 14px; line-height: 1.7; }
+.off { background: var(--accent-soft) !important; }
+.srcl { display: grid; margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #fff; text-decoration: none; font-size: 13px; }
+.srcl span { color: var(--muted); font-size: 12px; }
+.kp { margin-top: 14px; font-size: 14px; }
+.kp ul { margin: 6px 0 0; padding-left: 20px; line-height: 1.8; }
+@media (max-width: 1150px) { .cols { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .pl, .sums, .acts { grid-template-columns: 1fr; }
+  .ev { grid-template-columns: auto 1fr; }
+  .ev-dates, .ev .tag { grid-column: 2; }
+  .ev-dates input { width: 100%; }
 }
 </style>

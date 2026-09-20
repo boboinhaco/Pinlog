@@ -17,6 +17,7 @@ export const getItems = (params) => client.get('/items', { params })
 export const getItem = (itemId) => client.get(`/items/${itemId}`)
 export const patchItem = (itemId, body) => client.patch(`/items/${itemId}`, body)
 export const deleteItem = (itemId) => client.delete(`/items/${itemId}`)
+export const createManualItem = (body) => client.post('/items/manual', body)
 export const getCalendar = (from, to) => client.get('/calendar', { params: { from, to } })
 export const getPlaces = () => client.get('/places')
 

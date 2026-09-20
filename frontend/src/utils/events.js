@@ -10,7 +10,10 @@ export const fromItem = i => ({
   id: i.item_id, title: i.title, category: i.category,
   start: i.fields.event_period?.start ?? i.fields.apply_period?.start ?? null,
   end: i.fields.event_period?.end ?? i.fields.apply_period?.end ?? null,
-  place: i.fields.location ?? null, image: i.fields.image_url ?? null, grade: i.overall_grade
+  place: i.fields.location ?? null, image: i.fields.image_url ?? null, grade: i.overall_grade,
+  liked: !!i.fields.liked, created: i.created_at, summary: i.fields.summary ?? null, sourceUrl: i.fields.source_url ?? null,
+  keyPoints: i.fields.key_points ?? [], officialSummary: i.fields.official_summary ?? null,
+  periodKey: i.fields.event_period ? 'event_period' : i.fields.apply_period ? 'apply_period' : 'event_period'
 })
 
 // 캘린더 API 행 → 화면용 일정
@@ -27,3 +30,13 @@ export const mergeById = list => Object.values(list.reduce((acc, e) => {
 
 // 해당 월 1일~말일 조회 범위
 export const monthRange = d => [ymd(new Date(d.getFullYear(), d.getMonth(), 1)), ymd(new Date(d.getFullYear(), d.getMonth() + 1, 0))]
+
+// "2026. 9. 20 (토) – 10. 26 (일)" 형식
+const W = ['일', '월', '화', '수', '목', '금', '토']
+const full = s => { const d = new Date(s + 'T00:00'); return `${d.getMonth() + 1}. ${d.getDate()} (${W[d.getDay()]})` }
+export const periodLong = (start, end) => {
+  if (!start && !end) return '날짜 미정'
+  const y = (start || end).slice(0, 4)
+  if (!start || !end || start === end) return `${y}. ${full(start || end)}`
+  return `${y}. ${full(start)} – ${full(end)}`
+}

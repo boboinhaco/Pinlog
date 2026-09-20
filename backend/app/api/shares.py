@@ -9,7 +9,7 @@ from ..core.errors import NextoError, ok
 from ..schemas import ConfirmItemsRequest
 from ..services import storage
 from ..services.job_runner import run_job
-from .items import _events, _view, ver_view
+from .items import _events, _view, ver_view, _located
 
 router = APIRouter(prefix="/api/shares", tags=["shares"])
 
@@ -47,9 +47,14 @@ async def get_result(share_id: str, db: AsyncSession = Depends(get_db)):
     sources = (await db.execute(select(SourceDocument).where(SourceDocument.extraction_id == ex.extraction_id).order_by(SourceDocument.rank))).scalars().all()
     ver = (await db.execute(select(VerificationResult).where(VerificationResult.extraction_id == ex.extraction_id).order_by(VerificationResult.verified_at.desc()))).scalars().first()
     share = await db.get(ContentShare, share_id)
+    job = (await db.execute(select(AnalysisJob).where(AnalysisJob.share_id == share_id).order_by(AnalysisJob.finished_at.desc().nulls_last()))).scalars().first()
+    link = ((job.stage_results or {}).get("UNDERSTAND") or {}).get("link") or {} if job else {}
     return ok({
         "share_id": share_id,
         "original_url": share.original_url if share else None,
+        # 원본 게시물 미리보기 (링크 미리보기 정보, 예시 데이터면 없음)
+        "source_post": {k: link.get(k) for k in ("title", "description", "image_url", "is_sns")} if link and not link.get("error") else None,
+        "created_at": share.created_at.isoformat() if share else None,
         "extraction": {"extraction_id": str(ex.extraction_id), "model_name": ex.model_name, "schema_version": ex.schema_version, **ex.payload_json},
         "sources": [{"source_id": str(s.source_id), "url": s.url, "domain_type": s.domain_type, "title": s.title, "excerpt": s.excerpt, "rank": s.rank} for s in sources],
         "verification": ver_view(ver),
@@ -79,6 +84,7 @@ async def confirm_items(share_id: str, req: ConfirmItemsRequest, user_id: str = 
     saved = []
     for it in req.items:
         fields = {**it.fields, "source_url": share.original_url if share else None, "share_id": share_id}
+        if fields.get("location"): fields["location"] = await _located(fields["location"])
         dup = known.get(key(it.title, fields))
         if dup: saved.append(dup); continue
         item = SavedItem(user_id=user_id, extraction_id=ex.extraction_id, title=it.title, category=it.category, fields_json=fields,

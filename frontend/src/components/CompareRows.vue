@@ -24,11 +24,11 @@ defineProps({ rows: { type: Array, required: true } })
 .cmp-row { border-bottom: 1px solid var(--line); }
 .cmp-row:last-child { border-bottom: 0; }
 .cmp-row.CONFLICT { background: #fdf5f5; margin: 0 -10px; padding-inline: 14px; border-radius: 6px; }
-.k { font-family: var(--serif); font-weight: 700; }
+.k { font-weight: 700; }
 .v { line-height: 1.5; word-break: keep-all; }
 .official { color: var(--ink); }
 .m { display: none; font-style: normal; font-size: 11px; font-weight: 700; color: var(--muted); margin-right: 6px; }
-q { display: block; margin-top: 6px; padding-left: 10px; border-left: 3px solid var(--sage); font-size: 12.5px; color: #7b7480; quotes: none; }
+q { display: block; margin-top: 6px; padding-left: 10px; border-left: 3px solid var(--line-strong); font-size: 12.5px; color: #7b7480; quotes: none; }
 .tag { font-weight: 500; }
 @media (max-width: 760px) {
   .cmp-head { display: none; }

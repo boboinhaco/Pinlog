@@ -6,7 +6,8 @@ from ..db.session import get_db
 from ..db.models import SavedItem, CalendarEvent, SourceDocument, VerificationResult
 from ..core.security import current_user
 from ..core.errors import NextoError, ok
-from ..schemas import CreateItemRequest, UpdateItemRequest
+from ..schemas import CreateItemRequest, UpdateItemRequest, ManualItemRequest
+from ..pipeline.normalize import geocode
 
 router = APIRouter(prefix="/api/items", tags=["items"])
 
@@ -57,6 +58,18 @@ async def create_item(req: CreateItemRequest, user_id: str = Depends(current_use
     return ok(_view(item))
 
 
+# 링크 없이 직접 추가 (내 일정 > 새 일정 추가)
+@router.post("/manual")
+async def create_manual(req: ManualItemRequest, user_id: str = Depends(current_user), db: AsyncSession = Depends(get_db)):
+    if not req.title.strip(): raise NextoError("INVALID_TITLE", "일정 이름을 적어 주세요.")
+    fields = {**req.fields, "location": await _located(req.fields.get("location")), "manual": True}
+    item = SavedItem(user_id=user_id, title=req.title.strip()[:200], category=req.category, fields_json=fields, user_overrides=[], overall_grade="UNVERIFIED")
+    db.add(item); await db.flush()
+    for ev in _events(item): db.add(ev)
+    await db.commit()
+    return ok(_view(item))
+
+
 @router.get("")
 async def list_items(status: str | None = None, category: str | None = None, user_id: str = Depends(current_user), db: AsyncSession = Depends(get_db)):
     q = select(SavedItem).where(SavedItem.user_id == user_id).order_by(SavedItem.created_at.desc())
@@ -89,10 +102,22 @@ async def update_item(item_id: str, req: UpdateItemRequest, user_id: str = Depen
     item = await _own(db, item_id, user_id)
     if req.title: item.title = req.title
     if req.category: item.category = req.category
-    if req.fields: item.fields_json = {**item.fields_json, **req.fields}
+    if req.fields:
+        item.fields_json = {**item.fields_json, **req.fields, "location": await _located(req.fields["location"]) if "location" in req.fields else item.fields_json.get("location")}
+        # 날짜가 바뀌면 캘린더 이벤트 다시 만들기
+        if {"apply_period", "event_period"} & req.fields.keys():
+            for ev in (await db.execute(select(CalendarEvent).where(CalendarEvent.item_id == item.item_id))).scalars().all(): await db.delete(ev)
+            for ev in _events(item): db.add(ev)
     if req.status: item.status = req.status
     await db.commit()
     return ok(_view(item))
+
+
+# 장소명·주소만 있으면 좌표 채우기 (지도 표시용)
+async def _located(loc: dict | None) -> dict | None:
+    if not loc or not loc.get("name") or loc.get("lat") is not None: return loc
+    hit = await geocode(loc.get("name"), loc.get("address"))
+    return {**loc, "lat": hit[0], "lng": hit[1]} if hit else loc
 
 
 # 삭제 (캘린더 이벤트는 FK cascade)
